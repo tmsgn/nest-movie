@@ -1,0 +1,1 @@
+export default function MoviePage({ params }: { params: { moviename: string } }) 

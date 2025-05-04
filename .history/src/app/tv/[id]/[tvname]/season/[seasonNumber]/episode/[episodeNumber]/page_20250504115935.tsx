@@ -1,0 +1,18 @@
+"use client";
+
+import { useParams } from "next/navigation";
+
+export default function EpisodePage() {
+  const params = useParams();
+  const { tvname,tv seasonNumber, episodeNumber } = params;
+
+  return (
+    <div>
+      <h1>Watching {tvname}</h1>
+      <p>Season: {seasonNumber}</p>
+      <p>Episode: {episodeNumber}</p>
+
+      {/* You can fetch episode data here */}
+    </div>
+  );
+}

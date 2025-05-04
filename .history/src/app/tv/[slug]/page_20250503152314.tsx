@@ -1,0 +1,135 @@
+// app/tvpage/page.tsx
+import TVPageContent from "./TVPageContent";
+
+type Tvshow = {
+  id: number;
+  title: string;
+  poster_path: string;
+  release_date: string;
+  vote_average: number;
+  overview: string;
+  name: string;
+  seasons: { id: number; season_number: number }[];
+  first_air_date: string;
+  origin_country: string[];
+  genres: { id: number; name: string }[];
+};
+
+type CastMember = {
+  name: string;
+  character: string;
+  profile_path: string;
+};
+
+type Episode = {
+  season_number: number;
+  episode_number: number;
+  name: string;
+  overview: string;
+  still_path: string;
+};
+
+const API_KEY = process.env.TMDB_API_KEY;
+
+async function getTvshowDetails(title: string) {
+  try {
+    const response = await fetch(
+      `https://api.themoviedb.org/3/search/tv?api_key=${API_KEY}&query=${title}`
+    );
+    const data = await response.json();
+    return data.results?.[0] as Tvshow;
+  } catch (error) {
+    console.error("Error fetching TV show details:", error);
+    return null;
+  }
+}
+
+async function getTvshowCast(tvshowId: number) {
+  try {
+    const response = await fetch(
+      `https://api.themoviedb.org/3/tv/${tvshowId}/credits?api_key=${API_KEY}`
+    );
+    const data = await response.json();
+    return data.cast as CastMember[];
+  } catch (error) {
+    console.error("Error fetching TV show cast:", error);
+    return [];
+  }
+}
+
+async function getEpisodesBySeason(
+  tvshowId: number,
+  seasons: { id: number; season_number: number }[]
+) {
+  const episodesBySeason: { [seasonNumber: number]: Episode[] } = {};
+  for (const season of seasons) {
+    if (season.season_number === 0) continue;
+    try {
+      const response = await fetch(
+        `https://api.themoviedb.org/3/tv/${tvshowId}/season/${season.season_number}?api_key=${API_KEY}`
+      );
+      const seasonEpisodesData = await response.json();
+      episodesBySeason[season.season_number] = seasonEpisodesData.episodes || [];
+    } catch (error) {
+      console.error(
+        `Error fetching episodes for season ${season.season_number}:`,
+        error
+      );
+      episodesBySeason[season.season_number] = [];
+    }
+  }
+  return episodesBySeason;
+}
+
+export default async function TVpage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  // Parse slug to extract ID and title
+  const [id, ...titleParts] = params.slug.split("-");
+  const title = titleParts.join(" ");
+
+  // Fetch TV show details
+  const tvshow = await getTvshowDetails(title);
+
+  if (!tvshow) {
+    return <div className="p-4 text-center">Error: TV show not found.</div>;
+  }
+
+  try {
+    // Fetch all data concurrently
+    const [tvshowDetail, episodesBySeason, cast, videoData] = await Promise.all([
+      fetch(
+        `https://api.themoviedb.org/3/tv/${tvshow.id}?api_key=${API_KEY}`
+      ).then((res) => res.json()),
+      getEpisodesBySeason(tvshow.id, tvshow.seasons || []),
+      getTvshowCast(tvshow.id),
+      fetch(
+        `https://api.themoviedb.org/3/tv/${tvshow.id}/videos?api_key=${API_KEY}`
+      ).then((res) => res.json()),
+    ]);
+
+    // Find trailer
+    const trailer = videoData.results?.find(
+      (video: any) => video.type === "Trailer" && video.site === "YouTube"
+    );
+
+    return (
+      <TVPageContent
+        tvshow={tvshow}
+        tvshowDetail={tvshowDetail}
+        episodesBySeason={episodesBySeason}
+        cast={cast}
+        trailer={trailer}
+      />
+    );
+  } catch (error) {
+    console.error("Error fetching TV show data:", error);
+    return (
+      <div className="p-4 text-center">
+        Error: Unable to fetch TV show details.
+      </div>
+    );
+  }
+}
