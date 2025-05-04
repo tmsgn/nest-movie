@@ -21,11 +21,11 @@ async function getMovieDetails(id: string) {
   return data as Movie;
 }
 
-export async function generateMetadata({
+export function generateMetadata({
   params,
 }: {
   params: { id: string; moviename: string };
-}): Promise<Metadata> {
+}): Metadata {
   const title = decodeURIComponent(params.moviename).replace(/-/g, " ");
   return {
     title: `${title.charAt(0).toUpperCase()}${title.slice(1)}`,
