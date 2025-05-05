@@ -35,11 +35,11 @@ export async function generateMetadata({
   };
 }
 
-export default async function MoviePage({
-  params,
-}: {
+interface PageProps {
   params: { id: string; moviename: string };
-}) {
+}
+
+export default async function MoviePage({ params }: PageProps) {
   const movie = await getMovieDetails(params.id);
 
   if (!movie) {
@@ -47,20 +47,18 @@ export default async function MoviePage({
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-center  items-center bg-gray-900 text-white">
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white">
       <div className="max-w-4xl w-full p-4">
         <h1 className="text-4xl font-bold text-center mb-4">{movie.title}</h1>
 
         <div className="text-center mb-6">
-          <p className="text-lg">
-            {new Date(movie.release_date).getFullYear()}
-          </p>
+          <p className="text-lg">{new Date(movie.release_date).getFullYear()}</p>
           <p className="text-sm font-medium text-gray-400">
             {movie.vote_average} / 10
           </p>
         </div>
 
-        <div className="relative pb-[56.25%]  overflow-hidden mb-8">
+        <div className="relative pb-[56.25%] overflow-hidden mb-8">
           <iframe
             src={`https://vidfast.pro/movie/${movie.id}`}
             className="w-full h-[500px] rounded-lg shadow-md"
