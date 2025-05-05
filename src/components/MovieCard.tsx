@@ -36,7 +36,7 @@ export default function MovieCard({ movie }: { movie: Movie }) {
 
   return (
     <Link href={href} className="group  block h-full">
-      <div className="cursor-pointer rounded-lg p-1 group transition-transform transform hover:scale-105  relative h-full flex flex-col">
+      <div className="cursor-pointer  rounded-lg p-1 group transition-transform transform hover:scale-105  relative h-full flex flex-col">
         <div className="relative flex-shrink-0">
           <Image
             src={
@@ -46,8 +46,8 @@ export default function MovieCard({ movie }: { movie: Movie }) {
             }
             alt={`${itemTitle} Poster`}
             width={500}
-            height={750}
-            className="object-cover group-hover:opacity-60 rounded-lg w-full h-auto"
+            height={700}
+            className="object-cover  group-hover:opacity-60 rounded-lg w-full h-auto"
           />
         </div>
         <div className="mt-2 flex-grow flex flex-col justify-between">

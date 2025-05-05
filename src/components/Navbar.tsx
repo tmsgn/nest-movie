@@ -19,10 +19,15 @@ export default function NavBar() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false); // Track if the component is mounted
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
 
   const fuseOptions = { includeScore: true, threshold: 0.3, keys: ["title"] };
+
+  useEffect(() => {
+    setIsMounted(true); // Mark the component as mounted
+  }, []);
 
   useEffect(() => {
     if (query.trim()) {
@@ -107,12 +112,12 @@ export default function NavBar() {
           />
           <button
             type="submit"
-            className="px-3 py-2 rounded-r bg-yellow-400 text-black font-semibold hover:bg-yellow-300"
+            className="px-3 cursor-pointer py-2 rounded-r bg-yellow-400 text-black font-semibold hover:bg-yellow-300"
           >
             Search
           </button>
 
-          {query && results.length > 0 && (
+          {isMounted && query && results.length > 0 && (
             <div className="absolute left-0 right-0 top-12 max-h-60 overflow-y-auto bg-gray-800 text-white rounded-md shadow-lg z-20 scrollbar">
               {loading ? (
                 <div className="px-4 py-2 text-center text-gray-400">

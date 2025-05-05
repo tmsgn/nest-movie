@@ -1,6 +1,9 @@
 export default function Loading() {
   return (
-    <div className="md:p-4 p-1 bg-gray-900 text-white animate-pulse">
+    <div className="md:p-4 p-1  bg-gray-900 text-white animate-pulse">
+      {/* Slider Placeholder */}
+      <div className="min-h-72 md:h-[70vh] bg-gray-800 rounded-lg mb-6"></div>
+
       <h1 className="text-3xl font-bold text-yellow-400 m-3">Trending Movies</h1>
       <div className="grid lg:grid-cols-8 md:grid-cols-5 sm:grid-cols-4 grid-cols-3 gap-3">
         {Array.from({ length: 8 }).map((_, index) => (

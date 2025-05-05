@@ -43,14 +43,16 @@ export default async function HomePage() {
                 .map((movie) => ({
                   id: movie.id,
                   title: movie.title,
+                  vote_average: movie.vote_average,
                   name: movie.name,
                   backdrop_path: movie.backdrop_path,
                   release_date: movie.release_date,
                   first_air_date: movie.first_air_date,
                   genre_names: movie.genres
                     ? Array.isArray(movie.genres)
-                      ? movie.genres.map((g: string | { id: number; name: string }) =>
-                          typeof g === "string" ? g : g.name
+                      ? movie.genres.map(
+                          (g: string | { id: number; name: string }) =>
+                            typeof g === "string" ? g : g.name
                         )
                       : []
                     : [],
@@ -62,13 +64,15 @@ export default async function HomePage() {
                   id: tvshow.id,
                   title: tvshow.title,
                   name: tvshow.name,
+                  vote_average: tvshow.vote_average,
                   backdrop_path: tvshow.backdrop_path,
                   release_date: tvshow.release_date,
                   first_air_date: tvshow.first_air_date,
                   genre_names: tvshow.genres
                     ? Array.isArray(tvshow.genres)
-                      ? tvshow.genres.map((g: string | { id: number; name: string }) =>
-                          typeof g === "string" ? g : g.name
+                      ? tvshow.genres.map(
+                          (g: string | { id: number; name: string }) =>
+                            typeof g === "string" ? g : g.name
                         )
                       : []
                     : [],
@@ -77,9 +81,7 @@ export default async function HomePage() {
             ]}
           />
 
-          <h1 className="text-3xl font-bold text-yellow-400 m-3">
-            Trending Movies
-          </h1>
+          <h1 className="md:text-3xl font-bold text-yellow-400 m-3">Trending Movies</h1>
           <div className="grid lg:grid-cols-8 md:grid-cols-5 sm:grid-cols-4 grid-cols-3 gap-3">
             {movieArray.map((movie) => (
               <MovieCard key={movie.id} movie={movie} />
@@ -90,7 +92,7 @@ export default async function HomePage() {
 
       {tvShowArray.length > 0 && (
         <>
-          <h1 className="text-3xl font-bold text-yellow-400 m-3 mt-8">
+          <h1 className="md:text-3xl font-bold text-yellow-400 m-3 mt-8">
             Trending TV Shows
           </h1>
           <div className="grid lg:grid-cols-8 md:grid-cols-5 sm:grid-cols-4 grid-cols-3 gap-3">

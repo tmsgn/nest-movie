@@ -6,13 +6,33 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getTvshowDetail, getTvshowEpisodes } from "@/lib/fetchMovies";
 
+
+type Tvshow = {
+  id: number;
+  name: string;
+  poster_path: string;
+  first_air_date: string;
+  original_language: string;
+  status: string;
+  vote_average: number;
+  vote_count: number;
+  genres: { id: number; name: string }[];
+}
+type Epsoides= {
+  id: number;
+  name: string;
+  overview: string;
+  still_path: string | null;
+  episode_number: number;
+  season_number: number;
+}
 export default function EpisodePage() {
   const params = useParams();
   const router = useRouter();
   const { id, seasonNumber, episodeNumber } = params as Record<string, string>;
 
-  const [tvshow, setTvshow] = useState<any>(null);
-  const [episodes, setEpisodes] = useState<any[]>([]);
+  const [tvshow, setTvshow] = useState<Tvshow | null>(null);
+  const [episodes, setEpisodes] = useState<Epsoides[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedSeason, setSelectedSeason] = useState<number>(
     Number(seasonNumber)
@@ -81,8 +101,8 @@ export default function EpisodePage() {
         {/* IFRAME & DETAILS */}
         <div className="flex flex-col lg:flex-row gap-4">
           <iframe
-            src={`https://vidfast.pro/tv/${id}/${seasonNumber}/${episodeNumber}`}
-            className="w-full lg:w-2/3 min-h-64 sm:h-[60vh] md:h-[40vh] lg:h-[75vh] rounded-lg shadow-md"
+            src={`https://vidfast.pro/tv/${id}/${seasonNumber}/${episodeNumber}?nextButton=false&autoNext=false`}
+            className="w-full lg:w-2/3 md:min-h-96 min-h-64 sm:h-[60vh] md:h-[40vh] lg:h-[75vh] rounded-lg shadow-md"
             allowFullScreen
             sandbox="allow-scripts allow-same-origin allow-presentation"
           ></iframe>
@@ -148,13 +168,82 @@ export default function EpisodePage() {
             </div>
             <div>
               <h1 className="mt-4 text-base sm:text-lg font-bold text-yellow-400">
-                Description:
+              Description:
               </h1>
-              {tvshow.overview && (
-                <h1 className="line-clamp-8 mt-3 text-sm sm:text-base">
-                  {tvshow.overview}
-                </h1>
+              {episodes.length > 0 && (
+              <h1 className="line-clamp-6 mt-3 text-sm sm:text-base">
+                {episodes.find(
+                (ep) =>
+                  ep.episode_number === Number(episodeNumber) &&
+                  selectedSeason === Number(seasonNumber)
+                )?.overview || "No description available for this episode."}
+              </h1>
               )}
+                <div className="flex gap-4 mt-4">
+                <button
+                  onClick={() => {
+                  if (Number(episodeNumber) > 1) {
+                    router.push(
+                    `/tv/${tvshow.id}/${tvshow.name}/season/${selectedSeason}/episode/${Number(episodeNumber) - 1}`
+                    );
+                  } else if (selectedSeason > Math.min(...seasonKeys)) {
+                    const prevSeason = selectedSeason - 1;
+                    const prevSeasonEpisodes = episodes.filter(
+                    (ep) => ep.season_number === prevSeason
+                    );
+                    const lastEpisodeNumber =
+                    prevSeasonEpisodes[prevSeasonEpisodes.length - 1]
+                      ?.episode_number || 1;
+                    router.push(
+                    `/tv/${tvshow.id}/${tvshow.name}/season/${prevSeason}/episode/${lastEpisodeNumber}`
+                    );
+                  }
+                  }}
+                  disabled={
+                  Number(episodeNumber) === 1 &&
+                  selectedSeason === Math.min(...seasonKeys)
+                  }
+                  className={`px-4 py-2 rounded ${
+                  Number(episodeNumber) === 1 &&
+                  selectedSeason === Math.min(...seasonKeys)
+                    ? "bg-gray-600 cursor-not-allowed"
+                    : "bg-yellow-400 cursor-pointer text-gray-800"
+                  }`}
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => {
+                  if (
+                    Number(episodeNumber) <
+                    episodes[episodes.length - 1]?.episode_number
+                  ) {
+                    router.push(
+                    `/tv/${tvshow.id}/${tvshow.name}/season/${selectedSeason}/episode/${Number(episodeNumber) + 1}`
+                    );
+                  } else if (selectedSeason < Math.max(...seasonKeys)) {
+                    const nextSeason = selectedSeason + 1;
+                    router.push(
+                    `/tv/${tvshow.id}/${tvshow.name}/season/${nextSeason}/episode/1`
+                    );
+                  }
+                  }}
+                  disabled={
+                  Number(episodeNumber) ===
+                    episodes[episodes.length - 1]?.episode_number &&
+                  selectedSeason === Math.max(...seasonKeys)
+                  }
+                  className={`px-4 py-2 rounded ${
+                  Number(episodeNumber) ===
+                    episodes[episodes.length - 1]?.episode_number &&
+                  selectedSeason === Math.max(...seasonKeys)
+                    ? "bg-gray-600 cursor-not-allowed"
+                    : "bg-yellow-400 cursor-pointer text-gray-800"
+                  }`}
+                >
+                  Next
+                </button>
+                </div>
             </div>
           </div>
         </div>

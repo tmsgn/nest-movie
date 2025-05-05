@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import axios from "axios";
 
 type Movie = {
   id: number;
@@ -11,14 +12,12 @@ type Movie = {
 
 async function getMovieDetails(id: string) {
   const API_KEY = "b6a27c41bfadea6397dcd72c3877cac1";
-  const response = await fetch(
-    `https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}`
-  );
-  if (!response.ok) {
+  try {
+    const response = await axios.get(`https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}`);
+    return response.data as Movie;
+  } catch (error) {
     return null;
   }
-  const data = await response.json();
-  return data as Movie;
 }
 
 export async function generateMetadata({

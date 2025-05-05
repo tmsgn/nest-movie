@@ -1,3 +1,4 @@
+import axios from 'axios';
 import TVPageContent from "./TVPageContent";
 
 type CastMember = {
@@ -17,9 +18,8 @@ type Episode = {
 const API_KEY = "b6a27c41bfadea6397dcd72c3877cac1";
 
 const fetchJson = async (url: string) => {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to fetch: ${url}`);
-  return res.json();
+  const response = await axios.get(url);
+  return response.data;
 };
 
 const getTvshowCast = async (tvshowId: number): Promise<CastMember[]> => {
