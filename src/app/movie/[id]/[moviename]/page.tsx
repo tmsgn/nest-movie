@@ -13,7 +13,9 @@ type Movie = {
 async function getMovieDetails(id: string) {
   const API_KEY = "b6a27c41bfadea6397dcd72c3877cac1";
   try {
-    const response = await axios.get(`https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}`);
+    const response = await axios.get(
+      `https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}`
+    );
     return response.data as Movie;
   } catch (error) {
     return null;
@@ -36,7 +38,9 @@ export async function generateMetadata({
 
 export default async function MoviePage({
   params,
-}: Awaited<ReturnType<typeof Promise.resolve<{ params: { id: string; moviename: string } }>>>) {
+}: {
+  params: { id: string; moviename: string };
+}) {
   const movie = await getMovieDetails(params.id);
 
   if (!movie) {
