@@ -35,11 +35,9 @@ export async function generateMetadata({
   };
 }
 
-interface PageProps {
-  params: { id: string; moviename: string };
-}
-
-export default async function MoviePage({ params }: PageProps) {
+export default async function MoviePage({
+  params,
+}: Awaited<ReturnType<typeof Promise.resolve<{ params: { id: string; moviename: string } }>>>) {
   const movie = await getMovieDetails(params.id);
 
   if (!movie) {
