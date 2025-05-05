@@ -22,25 +22,22 @@ async function getMovieDetails(id: string) {
   }
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { id: string; moviename: string };
-}): Promise<Metadata> {
+type Props = {
+  params: {
+    id: string;
+    moviename: string;
+  };
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = decodeURIComponent(params.moviename).replace(/-/g, " ");
   return {
     title: `${title.charAt(0).toUpperCase()}${title.slice(1)}`,
-    description: `Watch ${title.charAt(0).toUpperCase()}${title.slice(
-      1
-    )} on MovieNest`,
+    description: `Watch ${title.charAt(0).toUpperCase()}${title.slice(1)} on MovieNest`,
   };
 }
 
-export default async function MoviePage({
-  params,
-}: {
-  params: { id: string; moviename: string };
-}) {
+export default async function MoviePage({ params }: Props) {
   const movie = await getMovieDetails(params.id);
 
   if (!movie) {
