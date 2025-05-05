@@ -29,9 +29,7 @@ export async function generateMetadata({
   const title = decodeURIComponent(params.moviename).replace(/-/g, " ");
   return {
     title: `${title.charAt(0).toUpperCase()}${title.slice(1)}`,
-    description: `Watch ${title.charAt(0).toUpperCase()}${title.slice(
-      1
-    )} on MovieNest`,
+    description: `Watch ${title.charAt(0).toUpperCase()}${title.slice(1)} on MovieNest`,
   };
 }
 
