@@ -166,12 +166,12 @@ export default function TVPageContent({
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute top-full mt-2 max-h-40 overflow-y-scroll scrollbar bg-gray-800 text-white rounded-lg shadow-lg z-10">
+            <div className="absolute top-full  mt-2  max-h-40 overflow-y-scroll scrollbar bg-gray-800 text-white rounded-lg shadow-lg z-10">
               {seasonKeys.map((season) => (
                 <button
                   key={season}
                   onClick={() => handleSeasonSelect(season)}
-                  className="block px-4 py-2 hover:bg-gray-700 w-full text-left cursor-pointer"
+                  className="block px-4 py-2 w-full hover:text-yellow-400  text-left cursor-pointer"
                 >
                   Season {season}
                 </button>

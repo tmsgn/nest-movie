@@ -4,7 +4,8 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getTvshowDetail, getTvshowEpisodes } from "@/lib/fetchMovies";
+import { getTvshowDetail, getTvshowEpisodes,RecommendedTvshows } from "@/lib/fetchMovies";
+import MovieCard from "@/components/MovieCard";
 
 
 type Tvshow = {
@@ -33,6 +34,7 @@ export default function EpisodePage() {
 
   const [tvshow, setTvshow] = useState<Tvshow | null>(null);
   const [episodes, setEpisodes] = useState<Epsoides[]>([]);
+  const [recommendedTvshows, setRecommendedTvshows] = useState<Tvshow[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedSeason, setSelectedSeason] = useState<number>(
     Number(seasonNumber)
@@ -40,11 +42,10 @@ export default function EpisodePage() {
   const [seasonKeys, setSeasonKeys] = useState<number[]>([]);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(false);
   const episodesPerPage = 12;
 
   useEffect(() => {
-    setLoading(true);
+   
     async function fetchTvshow() {
       if (id) {
         const data = await getTvshowDetail(Number(id));
@@ -58,7 +59,16 @@ export default function EpisodePage() {
       }
     }
     fetchTvshow();
-    setLoading(false);
+  }, [id]);
+
+  useEffect(() => {
+    async function fetchRecommendedTvshows() {
+      if (id) {
+        const data = await RecommendedTvshows(Number(id));
+        setRecommendedTvshows(data);
+      }
+    }
+    fetchRecommendedTvshows();
   }, [id]);
 
   useEffect(() => {
@@ -349,6 +359,32 @@ export default function EpisodePage() {
 
           <div className="text-center mt-2 text-sm text-gray-400">
             Page {currentPage} of {totalPages || 1}
+          </div>
+        </div>
+        {/* RECOMMENDED TV SHOWS */}
+        <div className="mt-8 h-fit gap-4">
+          <h1 className="text-lg sm:text-xl font-bold text-yellow-400 mb-4">
+            Recommended TV Shows
+          </h1>
+          <div className="grid lg:grid-cols-8 md:grid-cols-5 sm:grid-cols-4 grid-cols-3 gap-3">
+           {recommendedTvshows && recommendedTvshows.length > 0 &&
+             recommendedTvshows.map((show) => (
+              <div className="overflow-hidden" key={show.id}>
+                <MovieCard
+                  movie={{
+                    id: show.id,
+                    title: show.name,
+                    vote_average: show.vote_average,
+                    poster_path: show.poster_path,
+                    release_date: show.first_air_date,
+                    first_air_date: show.first_air_date,
+                    genre_ids: show.genres?.map((g) => g.id) || [],
+                    genres: show.genres?.map((g) => g.name) || [],
+                    media_type: "tv",
+                  }}
+                />
+              </div>
+            ))}
           </div>
         </div>
       </div>

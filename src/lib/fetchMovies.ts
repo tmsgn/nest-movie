@@ -125,3 +125,13 @@ export async function getTvshowEpisodes(tvshowId: number, seasonNumber: number) 
     return null;
   }
 }
+
+export async function RecommendedTvshows(tvshowId: number) {
+  try {
+    const res = await axios.get(`https://api.themoviedb.org/3/tv/${tvshowId}/recommendations?api_key=${API_KEY}`);
+    return res.data.results;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
