@@ -17,7 +17,9 @@ type Tvshow = {
   status: string;
   vote_average: number;
   vote_count: number;
-  genres: { id: number; name: string }[];
+  genres?: string[];
+
+  media_type: string;
 }
 type Epsoides= {
   id: number;
@@ -107,7 +109,7 @@ export default function EpisodePage() {
 
   return (
     <div className="w-screen h-full overflow-x-hidden">
-      <div className="flex flex-col mr-5 gap-4 px-1 sm:px-4">
+      <div className="flex  flex-col mr-5 gap-4 px-1 sm:px-4">
         {/* IFRAME & DETAILS */}
         <div className="flex flex-col lg:flex-row gap-4">
           <iframe
@@ -165,7 +167,7 @@ export default function EpisodePage() {
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2 md:mt-4">
-                  {tvshow.genres.map((g: any) => (
+                  {tvshow.genres && tvshow.genres.map((g: any) => (
                     <span
                       key={g.id}
                       className="text-xs sm:text-sm font-medium text-gray-700 bg-yellow-400 px-2 py-1 rounded"
@@ -371,17 +373,8 @@ export default function EpisodePage() {
              recommendedTvshows.map((show) => (
               <div className="overflow-hidden" key={show.id}>
                 <MovieCard
-                  movie={{
-                    id: show.id,
-                    title: show.name,
-                    vote_average: show.vote_average,
-                    poster_path: show.poster_path,
-                    release_date: show.first_air_date,
-                    first_air_date: show.first_air_date,
-                    genre_ids: show.genres?.map((g) => g.id) || [],
-                    genres: show.genres?.map((g) => g.name) || [],
-                    media_type: "tv",
-                  }}
+                 movie={show}
+                 key={show.id}
                 />
               </div>
             ))}

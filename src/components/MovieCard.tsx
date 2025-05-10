@@ -35,17 +35,9 @@ export default function MovieCard({ movie }: { movie: Movie }) {
       ? `/movie/${movie.id}/${slug}`
       : `/movie/${movie.id}/${slug}`;
 
-  let firstGenreDisplay = null;
-  if (
-    movie.genres &&
-    Array.isArray(movie.genres) &&
-    movie.genres.length > 0 &&
-    typeof movie.genres[0] === "string"
-  ) {
-    firstGenreDisplay = movie.genres[0];
-  } else if (movie.genre_ids && movie.genre_ids.length > 0) {
-    firstGenreDisplay = `Genre ID: ${movie.genre_ids[0]}`;
-  }
+  
+
+  const firstGenreDisplay = movie.genres?.[0] || (movie.genre_ids?.[0] ? `Genre ${movie.genre_ids[0]}` : null);
 
   return (
     <Link href={href} className="group  block h-full">
