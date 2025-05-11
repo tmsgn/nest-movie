@@ -3,12 +3,12 @@ export function generateMetadata({
     params,
   }: {
     params: { tvname: string };
-  }): Promise<Metadata> {
+  }): Metadata {
     const title = decodeURIComponent(params.tvname);
-    return Promise.resolve({
+    return {
       title: `${title.charAt(0).toUpperCase()}${title.slice(1)}`,
       description: `Watch ${title.charAt(0).toUpperCase()}${title.slice(1)} on MovieNest`,
-    });
+    };
   }
 
 export default function TVlayout({
