@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import MovieCard from "@/components/MovieCard";
+import { JSX } from "react";
 
 type Movie = {
   id: number;
@@ -9,7 +10,7 @@ type Movie = {
   vote_average: number;
   overview: string;
   genre_ids: number[];
-  genres?: string[]; // Optional genres property
+  genres?: string[]; 
   media_type: string;
 };
 
@@ -96,7 +97,7 @@ export function generateMetadata({ params }: { params: { searchname: string } })
   };
 }
 
-export default async function SearchPage({ params }: { params: { searchname: string } }) {
+export default async function SearchPage({ params }: { params: { searchname: string } }): Promise<JSX.Element> {
   const searchQuery = params.searchname?.replace(/-/g, " ") || "";
   const movies = await getSearchResults(searchQuery);
 

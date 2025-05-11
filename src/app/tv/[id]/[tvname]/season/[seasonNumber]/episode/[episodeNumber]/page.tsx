@@ -30,9 +30,9 @@ type Epsoides= {
   season_number: number;
 }
 export default function EpisodePage() {
-  const params = useParams();
+  const params = useParams() as { id: string; seasonNumber: string; episodeNumber: string };
   const router = useRouter();
-  const { id, seasonNumber, episodeNumber } = params as Record<string, string>;
+  const { id, seasonNumber, episodeNumber } = params;
 
   const [tvshow, setTvshow] = useState<Tvshow | null>(null);
   const [episodes, setEpisodes] = useState<Epsoides[]>([]);
