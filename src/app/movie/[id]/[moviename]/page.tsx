@@ -23,14 +23,14 @@ async function getMovieDetails(id: string) {
 }
 
 type Props = {
-  params: {
+  params: Promise<{
     id: string;
     moviename: string;
-  };
+  }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const title = decodeURIComponent(params.moviename).replace(/-/g, " ");
+  const title = decodeURIComponent((await params).moviename).replace(/-/g, " ");
   return {
     title: `${title.charAt(0).toUpperCase()}${title.slice(1)}`,
     description: `Watch ${title.charAt(0).toUpperCase()}${title.slice(1)} on MovieNest`,
@@ -38,7 +38,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function MoviePage({ params }: Props) {
-  const movie = await getMovieDetails(params.id);
+  const resolvedParams = await params;
+  const movie = await getMovieDetails(resolvedParams.id);
 
   if (!movie) {
     return <div>Movie not found</div>;
