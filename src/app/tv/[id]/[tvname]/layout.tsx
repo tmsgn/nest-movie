@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
 
-type Props = {
-  children: React.ReactNode;
-  params: {
-    id: string;
-    tvname: string;
-  };
-};
-
-export function generateMetadata({ params }: Props): Metadata {
+export function generateMetadata({
+  params,
+}: {
+  params: { id: string; tvname: string };
+}): Metadata {
   const title = decodeURIComponent(params.tvname);
   return {
     title: `${title.charAt(0).toUpperCase()}${title.slice(1)}`,
@@ -16,7 +12,11 @@ export function generateMetadata({ params }: Props): Metadata {
   };
 }
 
-export default function TVlayout({ children }: Props) {
+export default function TVlayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div className="p-4 w-screen overflow-x-hidden">
       {children}
