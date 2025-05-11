@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import MovieCard from "@/components/MovieCard";
-import { JSX } from "react";
 
 type Movie = {
   id: number;
@@ -10,7 +9,7 @@ type Movie = {
   vote_average: number;
   overview: string;
   genre_ids: number[];
-  genres?: string[]; 
+  genres?: string[]; // Optional genres property
   media_type: string;
 };
 
@@ -89,16 +88,16 @@ async function getSearchResults(query: string): Promise<Movie[]> {
   }
 }
 
-export function generateMetadata({ params }: { params: { searchname: string } }): Metadata {
-  const title = decodeURIComponent(params.searchname || "");
+export async function generateMetadata({ params }: { params: Promise<{ searchname: string }> }): Promise<Metadata> {
+  const title = decodeURIComponent((await params).searchname || "");
   return {
     title: `Search result for: ${title}`,
     description: `Search results for ${title} on MovieNest`
   };
 }
 
-export default async function SearchPage({ params }: { params: { searchname: string } }): Promise<JSX.Element> {
-  const searchQuery = params.searchname?.replace(/-/g, " ") || "";
+export default async function SearchPage({ params }: { params: Promise<{ searchname: string }> }) {
+  const searchQuery = (await params).searchname?.replace(/-/g, " ") || "";
   const movies = await getSearchResults(searchQuery);
 
   if (!movies || movies.length === 0) {
