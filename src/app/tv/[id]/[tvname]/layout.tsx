@@ -1,23 +1,26 @@
 import type { Metadata } from "next";
+
 export function generateMetadata({
-    params,
-  }: {
-    params: { tvname: string } & Record<string, any>;
-  }): Metadata {
-    const title = decodeURIComponent(params.tvname);
-    return {
-      title: `${title.charAt(0).toUpperCase()}${title.slice(1)}`,
-      description: `Watch ${title.charAt(0).toUpperCase()}${title.slice(1)} on MovieNest`,
-    };
-  }
+  params,
+}: {
+  params: { id: string; tvname: string };
+}): Metadata {
+  const title = decodeURIComponent(params.tvname);
+  return {
+    title: `${title.charAt(0).toUpperCase()}${title.slice(1)}`,
+    description: `Watch ${title.charAt(0).toUpperCase()}${title.slice(1)} on MovieNest`,
+  };
+}
 
 export default function TVlayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: { id: string; tvname: string };
 }) {
   return (
-    <div className=" p-4 w-screen overflow-x-hidden">
+    <div className="p-4 w-screen overflow-x-hidden">
       {children}
     </div>
   );
