@@ -39,6 +39,15 @@ export default function TVPageContent({
   const [currentPage, setCurrentPage] = useState(1);
   const episodesPerPage = 6;
 
+ 
+  const [posterLoaded, setPosterLoaded] = useState(false);
+  const [castLoaded, setCastLoaded] = useState<boolean[]>(() =>
+    Array(cast.length).fill(false)
+  );
+  const [episodeLoaded, setEpisodeLoaded] = useState<boolean[]>(() =>
+    Array(episodesBySeason[parseInt(selectedSeason)]?.length || 0).fill(false)
+  );
+
   const episodes = episodesBySeason[parseInt(selectedSeason)] || [];
   const totalPages = Math.ceil(episodes.length / episodesPerPage);
   const currentEpisodes = episodes.slice(
@@ -53,6 +62,25 @@ export default function TVPageContent({
     setSelectedSeason(season);
     setCurrentPage(1);
     setIsDropdownOpen(false);
+    setEpisodeLoaded(Array(episodesBySeason[parseInt(season)]?.length || 0).fill(false));
+  };
+
+  // Helper for cast image loading
+  const handleCastLoad = (idx: number) => {
+    setCastLoaded((prev) => {
+      const arr = [...prev];
+      arr[idx] = true;
+      return arr;
+    });
+  };
+
+  // Helper for episode image loading
+  const handleEpisodeLoad = (idx: number) => {
+    setEpisodeLoaded((prev) => {
+      const arr = [...prev];
+      arr[idx] = true;
+      return arr;
+    });
   };
 
   return (
@@ -60,13 +88,20 @@ export default function TVPageContent({
       {/* Main Info */}
       <div className="flex flex-col md:flex-row gap-8">
         <div className="flex-shrink-0 flex justify-center md:justify-start">
-          <Image
-            src={`https://image.tmdb.org/t/p/w500${tvshow.poster_path}`}
-            alt={tvshow.name}
-            width={300}
-            height={450}
-            className="object-cover rounded-lg w-full max-w-[300px] h-auto"
-          />
+          <div className="relative w-[300px] h-[450px]">
+            {!posterLoaded && (
+              <div className="absolute inset-0 animate-pulse bg-gray-300 rounded-lg" />
+            )}
+            <Image
+              src={`https://image.tmdb.org/t/p/w500${tvshow.poster_path}`}
+              alt={tvshow.name}
+              width={300}
+              height={450}
+              className={`object-cover rounded-lg w-full max-w-[300px] h-auto ${!posterLoaded ? "invisible" : ""}`}
+              onLoad={() => setPosterLoaded(true)}
+              priority
+            />
+          </div>
         </div>
 
         <div className="flex-1">
@@ -122,15 +157,21 @@ export default function TVPageContent({
         <div className="grid grid-cols-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
           {cast.slice(0, 6).map((member, index) => (
             <div key={index} className="flex flex-col items-center">
-              {member.profile_path && (
-                <Image
-                  src={`https://image.tmdb.org/t/p/w500${member.profile_path}`}
-                  alt={member.name}
-                  width={80}
-                  height={120}
-                  className="rounded-lg w-full h-auto object-cover aspect-[2/3]"
-                />
-              )}
+              <div className="relative w-[80px] h-[120px]">
+                {!castLoaded[index] && member.profile_path && (
+                  <div className="absolute inset-0 animate-pulse bg-gray-300 rounded-lg" />
+                )}
+                {member.profile_path && (
+                  <Image
+                    src={`https://image.tmdb.org/t/p/w500${member.profile_path}`}
+                    alt={member.name}
+                    width={80}
+                    height={120}
+                    className={`rounded-lg w-full h-auto object-cover aspect-[2/3] ${!castLoaded[index] ? "invisible" : ""}`}
+                    onLoad={() => handleCastLoad(index)}
+                  />
+                )}
+              </div>
               <h2 className="text-sm font-semibold mt-2 line-clamp-1">
                 {member.name}
               </h2>
@@ -181,21 +222,27 @@ export default function TVPageContent({
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
-          {currentEpisodes.map((episode) => (
+          {currentEpisodes.map((episode, idx) => (
             <Link
-            href={`/tv/${tvshow.id}/${tvshow.name}/season/${selectedSeason}/episode/${episode.episode_number}`}
+              href={`/tv/${tvshow.id}/${tvshow.name}/season/${selectedSeason}/episode/${episode.episode_number}`}
               key={episode.episode_number}
               className="bg-gray-900 rounded-lg cursor-pointer transition-transform transform hover:scale-105 hover:bg-yellow-700 overflow-hidden shadow w-32 sm:w-36 md:w-40 lg:w-44 xl:w-48"
             >
-              <img
-                src={
-                  episode.still_path
-                    ? `https://image.tmdb.org/t/p/w300${episode.still_path}`
-                    : `https://image.tmdb.org/t/p/w500${tvshow.poster_path}`
-                }
-                alt={episode.name}
-                className="w-full h-20 sm:h-24 md:h-28 object-cover"
-              />
+              <div className="relative w-full" style={{ minHeight: "96px" }}>
+                {!episodeLoaded[idx] && (
+                  <div className="absolute inset-0 animate-pulse bg-gray-300" />
+                )}
+                <img
+                  src={
+                    episode.still_path
+                      ? `https://image.tmdb.org/t/p/w300${episode.still_path}`
+                      : `https://image.tmdb.org/t/p/w500${tvshow.poster_path}`
+                  }
+                  alt={episode.name}
+                  className={`w-full h-20 sm:h-24 md:h-28 object-cover ${!episodeLoaded[idx] ? "invisible" : ""}`}
+                  onLoad={() => handleEpisodeLoad(idx)}
+                />
+              </div>
               <div className="p-1">
                 <div
                   className="font-semibold text-white text-sm truncate"
