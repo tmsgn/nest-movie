@@ -14,7 +14,7 @@ export default async function HomePage() {
   if (movieArray.length === 0 && tvShowArray.length === 0) {
     return (
       <div className="min-h-screen flex justify-center items-center bg-gray-900 text-white">
-        No trending content available.
+        looks like you are offline
       </div>
     );
   }

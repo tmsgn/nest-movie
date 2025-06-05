@@ -65,7 +65,7 @@ export default function TVPageContent({
     setEpisodeLoaded(Array(episodesBySeason[parseInt(season)]?.length || 0).fill(false));
   };
 
-  // Helper for cast image loading
+
   const handleCastLoad = (idx: number) => {
     setCastLoaded((prev) => {
       const arr = [...prev];
@@ -74,7 +74,6 @@ export default function TVPageContent({
     });
   };
 
-  // Helper for episode image loading
   const handleEpisodeLoad = (idx: number) => {
     setEpisodeLoaded((prev) => {
       const arr = [...prev];
@@ -152,7 +151,7 @@ export default function TVPageContent({
       </div>
 
       {/* Cast */}
-      <div className="mt-12">
+      <div className="mt-12 ">
         <h1 className="text-2xl font-bold text-yellow-400 mb-4">Cast</h1>
         <div className="grid grid-cols-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
           {cast.slice(0, 6).map((member, index) => (
@@ -166,8 +165,8 @@ export default function TVPageContent({
                     src={`https://image.tmdb.org/t/p/w500${member.profile_path}`}
                     alt={member.name}
                     width={80}
-                    height={120}
-                    className={`rounded-lg w-full h-auto object-cover aspect-[2/3] ${!castLoaded[index] ? "invisible" : ""}`}
+                    height={80}
+                    className={`rounded-full object-cover w-[100px] h-[100px] ${!castLoaded[index] ? "invisible" : ""}`}
                     onLoad={() => handleCastLoad(index)}
                   />
                 )}
