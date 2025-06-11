@@ -70,11 +70,14 @@ const getEpisodesBySeason = async (
   return episodesBySeason;
 };
 
-export default async function TVpage({
-  params,
-}: {
-  params: { tvname: string; id: string };
-}) {
+interface TVPageProps {
+  params: {
+    tvname: string;
+    id: string;
+  };
+}
+
+export default async function TVpage({ params }: TVPageProps) {
   const tvshowId = params.id;
 
   try {
