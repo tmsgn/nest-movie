@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export function generateMetadata({
   params,
 }: {
-  params: { id: number; tvname: string };
+  params: { id: string; tvname: string };
 }): Metadata {
   const title = decodeURIComponent(params.tvname);
   return {

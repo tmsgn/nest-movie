@@ -78,7 +78,7 @@ export default function MovieSlider({ movies }: Props) {
                 className="w-full  h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-end p-6 space-y-2">
-                {/* Title with responsive font size */}
+                
                 <h2 className="text-lg md:text-3xl font-bold text-yellow-400">
                   {movie.title ?? movie.name ?? "Untitled"}
                 </h2>
