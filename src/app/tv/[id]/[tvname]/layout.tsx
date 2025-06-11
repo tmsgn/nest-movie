@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 
-export function generateMetadata({
-  params,
-}: {
-  params: { id: string; tvname: string };
-}): Metadata {
+export function generateMetadata(
+  { params }: any
+): Metadata {
   const title = decodeURIComponent(params.tvname);
   return {
     title: `${title.charAt(0).toUpperCase()}${title.slice(1)}`,
