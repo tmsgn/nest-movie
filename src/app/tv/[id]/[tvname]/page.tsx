@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 import TVPageContent from "./TVPageContent";
 
 type CastMember = {
@@ -70,8 +70,13 @@ const getEpisodesBySeason = async (
   return episodesBySeason;
 };
 
-export default async function TVpage({ params }: { params: { tvname: string; id: string } }) {
-  const tvshowId = params.id;
+export default async function TVpage({
+  params,
+}: {
+  params: Promise<{ tvname: string; id: string }>;
+}) {
+  const resolvedParams = await params;
+  const tvshowId = resolvedParams.id;
 
   try {
     const [tvshowDetail, cast, videoData] = await Promise.all([
