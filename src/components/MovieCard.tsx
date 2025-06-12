@@ -81,12 +81,12 @@ export default function MovieCard({ movie }: { movie: Movie }) {
           </h1>
           )}
           <div className="flex flex-col gap-1">
-          <h1 className="font-semibold line-clamp-1 text-xs md:text-base">
+          <h1 className="font-semibold truncate text-xs md:text-base">
             {itemTitle}
           </h1>
           <div className="flex justify-between items-center md:flex-nowrap flex-wrap gap-1">
             {firstGenreDisplay && (
-            <h1 className="md:text-sm max-w-32 text-gray-500 break-words text-xs font-medium line-clamp-1 flex-shrink overflow-hidden">
+            <h1 className="md:text-sm w-full text-gray-500 break-words text-xs font-medium truncate flex-shrink overflow-hidden">
               {firstGenreDisplay}
             </h1>
             )}
