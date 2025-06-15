@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import AddToFavBtn from "./AddToFavBtn";
 
 interface Movie {
   id: number;
@@ -76,8 +77,9 @@ export default function MovieCard({ movie }: { movie: Movie }) {
         ) : (
         <>
           {releaseYear && (
-          <h1 className="text-xs md:text-sm font-medium text-gray-400 ">
+          <h1 className="text-xs flex justify-between md:text-sm font-medium text-gray-400 ">
             {releaseYear}
+            <AddToFavBtn movie={movie} />
           </h1>
           )}
           <div className="flex flex-col gap-1">

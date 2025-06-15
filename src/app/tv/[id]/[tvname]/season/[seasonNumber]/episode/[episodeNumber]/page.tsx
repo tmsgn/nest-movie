@@ -11,6 +11,7 @@ import {
   RecommendedTvshows,
 } from "@/lib/fetchMovies";
 import MovieCard from "@/components/MovieCard";
+import AddToFavBtn from "@/components/AddToFavBtn";
 
 type Tvshow = {
   id: number;
@@ -184,6 +185,9 @@ export default function EpisodePage() {
                   height={300}
                   onLoad={() => setPosterLoading(false)}
                 />
+                 <AddToFavBtn
+                movie={tvshow}
+                />
               </div>
               <div className="sm:ml-4 flex flex-col justify-start">
                 <h1 className="text-xl sm:text-2xl font-bold line-clamp-2">
@@ -247,6 +251,7 @@ export default function EpisodePage() {
                       selectedSeason === Number(selectedSeason)
                   )?.overview || "No description available for this episode."}
                 </h1>
+                
               )}
               <div className="flex gap-4 mt-4">
                 <button
