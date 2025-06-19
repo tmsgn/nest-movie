@@ -37,6 +37,19 @@ type Epsoides = {
 const TV_GENRE_API =
   "https://api.themoviedb.org/3/genre/tv/list?api_key=b6a27c41bfadea6397dcd72c3877cac1";
 
+const SERVERS = [
+  {
+    name: "VidFast",
+    getUrl: (id: string, season: string, episode: string) =>
+      `https://vidfast.pro/tv/${id}/${season}/${episode}?nextButton=false&autoNext=false`,
+  },
+  {
+    name: "VidSrc",
+    getUrl: (id: string, season: string, episode: string) =>
+      `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}?autoPlay=false`,
+  },
+];
+
 export default function EpisodePage() {
   const params = useParams() as {
     id: string;
@@ -67,6 +80,9 @@ export default function EpisodePage() {
 
   // --- Only for genre name fix ---
   const [tvGenres, setTvGenres] = useState<{ id: number; name: string }[]>([]);
+
+  // Server selection state
+  const [selectedServer, setSelectedServer] = useState(SERVERS[0].name);
 
   useEffect(() => {
     async function fetchGenres() {
@@ -151,9 +167,33 @@ export default function EpisodePage() {
     return null;
   }
 
+  // Get the selected server object
+  const serverObj = SERVERS.find((s) => s.name === selectedServer) || SERVERS[0];
+  const iframeUrl = serverObj.getUrl(id, seasonNumber, episodeNumber);
+
   return (
     <div className="w-screen h-full overflow-x-hidden">
       <div className="flex  flex-col mr-5 gap-4 px-1 sm:px-4">
+        {/* SERVER SELECTOR */}
+        <div className="flex gap-2 mb-2 mt-4">
+          <span className="font-semibold text-gray-700">Choose Server:</span>
+          {SERVERS.map((server) => (
+            <button
+              key={server.name}
+              onClick={() => {
+                setIframeLoading(true);
+                setSelectedServer(server.name);
+              }}
+              className={`px-3 py-1 rounded transition text-sm font-medium ${
+                selectedServer === server.name
+                  ? "bg-yellow-400 text-gray-900"
+                  : "bg-gray-800 text-white hover:bg-yellow-500 hover:text-gray-900"
+              }`}
+            >
+              {server.name}
+            </button>
+          ))}
+        </div>
         {/* IFRAME & DETAILS */}
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="relative w-full lg:w-2/3">
@@ -161,7 +201,7 @@ export default function EpisodePage() {
               <div className="absolute inset-0 flex items-center justify-center bg-gray-200 animate-pulse rounded-lg min-h-64 sm:h-[60vh] md:h-[40vh] lg:h-[75vh] z-10" />
             )}
             <iframe
-              src={`https://vidfast.pro/tv/${id}/${seasonNumber}/${episodeNumber}?nextButton=false&autoNext=false`}
+              src={iframeUrl}
               className={`w-full md:min-h-96 min-h-64 sm:h-[60vh] md:h-[40vh] lg:h-[75vh] rounded-lg shadow-md ${
                 iframeLoading ? "invisible" : ""
               }`}
@@ -185,9 +225,7 @@ export default function EpisodePage() {
                   height={300}
                   onLoad={() => setPosterLoading(false)}
                 />
-                 <AddToFavBtn
-                movie={tvshow}
-                />
+                <AddToFavBtn movie={tvshow} />
               </div>
               <div className="sm:ml-4 flex flex-col justify-start">
                 <h1 className="text-xl sm:text-2xl font-bold line-clamp-2">
@@ -251,7 +289,6 @@ export default function EpisodePage() {
                       selectedSeason === Number(selectedSeason)
                   )?.overview || "No description available for this episode."}
                 </h1>
-                
               )}
               <div className="flex gap-4 mt-4">
                 <button
