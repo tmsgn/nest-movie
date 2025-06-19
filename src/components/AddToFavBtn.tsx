@@ -39,16 +39,19 @@ const AddToFavBtn = ({ movie }: { movie: Movie }) => {
 
   return (
     <button
-      onClick={(e) => { e.preventDefault(); toggleFavorite(); }}
-      className="bg-transparent cursor-pointer border-none p-0 m-0 flex items-center justify-center"
+      onClick={(e) => {
+        e.preventDefault();
+        toggleFavorite();
+      }}
+      className="absolute top-2 right-2 z-10 bg-transparent border-none p-0 m-0 flex items-center justify-center transition-transform hover:scale-110"
       aria-label={isFavorite ? "Remove from saved" : "Save"}
       title={isFavorite ? "Remove from saved" : "Save"}
       style={{ background: "none", border: "none" }}
     >
       {isFavorite ? (
-        <FaBookmark className="text-blue-600 text-xl" />
+        <FaBookmark className="text-yellow-400 text-2xl drop-shadow" />
       ) : (
-        <FaRegBookmark className="text-gray-600 text-xl hover:text-blue-600 transition" />
+        <FaRegBookmark className="text-white text-2xl hover:text-yellow-400 drop-shadow" />
       )}
     </button>
   );

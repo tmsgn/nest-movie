@@ -46,7 +46,7 @@ const SERVERS = [
   {
     name: "VidSrc",
     getUrl: (id: string, season: string, episode: string) =>
-      `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}?autoPlay=false`,
+      `https://vidsrc.cc/v3/embed/tv/${id}/${season}/${episode}?autoPlay=false`,
   },
 ];
 
