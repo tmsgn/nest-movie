@@ -173,32 +173,13 @@ export default function EpisodePage() {
   }
 
   // Get the selected server object
-  const serverObj = SERVERS.find((s) => s.name === selectedServer) || SERVERS[0];
+  const serverObj =
+    SERVERS.find((s) => s.name === selectedServer) || SERVERS[0];
   const iframeUrl = serverObj.getUrl(id, seasonNumber, episodeNumber);
 
   return (
     <div className="w-screen h-full overflow-x-hidden">
       <div className="flex  flex-col mr-5 gap-4 px-1 sm:px-4">
-        {/* SERVER SELECTOR */}
-        <div className="flex gap-2 mb-2 mt-4">
-          <span className="font-semibold text-gray-700">Choose Server:</span>
-          {SERVERS.map((server) => (
-            <button
-              key={server.name}
-              onClick={() => {
-                setIframeLoading(true);
-                setSelectedServer(server.name);
-              }}
-              className={`px-3 py-1 rounded transition text-sm font-medium ${
-                selectedServer === server.name
-                  ? "bg-yellow-400 text-gray-900"
-                  : "bg-gray-800 text-white hover:bg-yellow-500 hover:text-gray-900"
-              }`}
-            >
-              {server.name}
-            </button>
-          ))}
-        </div>
         {/* IFRAME & DETAILS */}
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="relative w-full lg:w-2/3">
@@ -371,7 +352,26 @@ export default function EpisodePage() {
             </div>
           </div>
         </div>
-
+        {/* SERVER SELECTOR */}
+        <div className="flex gap-2 mb-2 mt-4">
+          <span className="font-semibold text-gray-700">Choose Server:</span>
+          {SERVERS.map((server) => (
+            <button
+              key={server.name}
+              onClick={() => {
+                setIframeLoading(true);
+                setSelectedServer(server.name);
+              }}
+              className={`px-3 py-1 rounded transition text-sm font-medium ${
+                selectedServer === server.name
+                  ? "bg-yellow-400 text-gray-900"
+                  : "bg-gray-800 text-white hover:bg-yellow-500 hover:text-gray-900"
+              }`}
+            >
+              {server.name}
+            </button>
+          ))}
+        </div>
         {/* DROPDOWN + EPISODES */}
         <div className="mt-4">
           <div className="flex items-center gap-2 mb-4 relative">
@@ -414,7 +414,10 @@ export default function EpisodePage() {
             {currentEpisodes.map((episode) => (
               <Link
                 key={episode.episode_number}
-                href={`/tv/${tvshow.id}/${tvshow.name.replace('%','-')}/season/${selectedSeason}/episode/${episode.episode_number}`}
+                href={`/tv/${tvshow.id}/${tvshow.name.replace(
+                  "%",
+                  "-"
+                )}/season/${selectedSeason}/episode/${episode.episode_number}`}
                 className={`bg-gray-900 rounded-lg cursor-pointer transition-transform transform hover:scale-105 hover:bg-yellow-700 overflow-hidden shadow ${
                   episode.episode_number === Number(episodeNumber) &&
                   selectedSeason === Number(seasonNumber)
