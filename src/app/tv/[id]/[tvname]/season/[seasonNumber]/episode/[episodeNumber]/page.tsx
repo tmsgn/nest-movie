@@ -49,9 +49,9 @@ const SERVERS = [
       `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}?autoPlay=false`,
   },
   {
-    name: "VidCloud",
+    name: "VidSrc 2",
     getUrl: (id: string, season: string, episode: string) =>
-      `https://embed.su/embed/tv/${id}/${season}/${episode}`,
+      `https://vidsrc.vip/embed/tv/${id}/${season}/${episode}`,
   },
 ];
 
