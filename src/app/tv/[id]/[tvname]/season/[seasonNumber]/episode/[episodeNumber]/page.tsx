@@ -53,6 +53,11 @@ const SERVERS = [
     getUrl: (id: string, season: string, episode: string) =>
       `https://vidsrc.vip/embed/tv/${id}/${season}/${episode}`,
   },
+  {
+  name: "RGShows", 
+  getUrl: (id: string, season: string, episode: string) =>
+    `https://rgshows.me/player/series/api2/index.html?id=${id}&s=${season}&e=${episode}`,
+}
 ];
 
 export default function EpisodePage() {
