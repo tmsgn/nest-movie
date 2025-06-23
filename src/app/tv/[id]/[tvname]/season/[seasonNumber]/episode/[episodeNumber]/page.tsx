@@ -268,7 +268,7 @@ export default function EpisodePage() {
                 Description:
               </h1>
               {episodes.length > 0 && (
-                <h1 className="line-clamp-6 mt-3 text-sm sm:text-base">
+                <h1 className="line-clamp-4 mt-3 text-sm sm:text-base">
                   {episodes.find(
                     (ep) =>
                       ep.episode_number === Number(episodeNumber) &&
