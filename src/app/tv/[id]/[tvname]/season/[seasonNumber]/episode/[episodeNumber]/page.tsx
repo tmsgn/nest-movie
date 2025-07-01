@@ -188,9 +188,6 @@ export default function EpisodePage() {
         {/* IFRAME & DETAILS */}
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="relative w-full lg:w-2/3">
-            {iframeLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-200 animate-pulse rounded-lg min-h-64 sm:h-[60vh] md:h-[40vh] lg:h-[75vh] z-10" />
-            )}
             <iframe
               src={iframeUrl}
               className={`w-full md:min-h-96 min-h-64 sm:h-[60vh] md:h-[40vh] lg:h-[75vh] rounded-lg shadow-md ${
