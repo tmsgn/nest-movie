@@ -33,7 +33,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = decodeURIComponent((await params).moviename).replace(/-/g, " ");
   return {
     title: `${title.charAt(0).toUpperCase()}${title.slice(1)}`,
-    description: `Watch ${title.charAt(0).toUpperCase()}${title.slice(1)} on MovieNest`,
+    description: `Watch ${title.charAt(0).toUpperCase()}${title.slice(
+      1
+    )} on MovieNest`,
   };
 }
 
@@ -51,7 +53,9 @@ export default async function MoviePage({ params }: Props) {
         <h1 className="text-4xl font-bold text-center mb-4">{movie.title}</h1>
 
         <div className="text-center mb-6">
-          <p className="text-lg">{new Date(movie.release_date).getFullYear()}</p>
+          <p className="text-lg">
+            {new Date(movie.release_date).getFullYear()}
+          </p>
           <p className="text-sm font-medium text-gray-400">
             {movie.vote_average} / 10
           </p>
@@ -62,7 +66,6 @@ export default async function MoviePage({ params }: Props) {
             src={`https://vidfast.pro/movie/${movie.id}`}
             className="w-full h-[500px] rounded-lg shadow-md"
             allowFullScreen
-            sandbox="allow-scripts allow-same-origin allow-presentation"
           ></iframe>
         </div>
 
