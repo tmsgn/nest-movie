@@ -39,9 +39,9 @@ const TV_GENRE_API =
 
 const SERVERS = [
   {
-    name: "VidFast",
+    name: "VidJoy",
     getUrl: (id: string, season: string, episode: string) =>
-      `https://vidfast.pro/tv/${id}/${season}/${episode}?nextButton=false&autoNext=false`,
+      `https://vidjoy.pro/embed/tv/${id}/${season}/${episode}`,
   },
   {
     name: "VidSrc",
@@ -49,9 +49,9 @@ const SERVERS = [
       `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}?autoPlay=false`,
   },
   {
-    name: "VidSrc 2",
+    name: "VidFast",
     getUrl: (id: string, season: string, episode: string) =>
-      `https://vidsrc.vip/embed/tv/${id}/${season}/${episode}`,
+      `https://vidfast.pro/tv/${id}/${season}/${episode}?nextButton=false&autoNext=false`,
   },
   {
   name: "RGShows", 
