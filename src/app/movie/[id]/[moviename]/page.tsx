@@ -63,7 +63,7 @@ export default async function MoviePage({ params }: Props) {
 
         <div className="relative pb-[56.25%] overflow-hidden mb-8">
           <iframe
-            src={`https://vidfast.pro/movie/${movie.id}`}
+            src={`https://vidlink.pro/movie/${movie.id}`}
             className="w-full h-[500px] rounded-lg shadow-md"
             allowFullScreen
           ></iframe>
