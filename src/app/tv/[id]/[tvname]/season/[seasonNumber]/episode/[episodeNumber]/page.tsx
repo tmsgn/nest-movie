@@ -192,7 +192,6 @@ export default function EpisodePage() {
           
            <iframe
   src={iframeUrl}
-  sandbox="allow-scripts allow-same-origin"
   className={`w-full md:min-h-96 min-h-64 sm:h-[60vh] md:h-[40vh] lg:h-[75vh] rounded-lg shadow-md ${
     iframeLoading ? "invisible" : ""
   }`}
