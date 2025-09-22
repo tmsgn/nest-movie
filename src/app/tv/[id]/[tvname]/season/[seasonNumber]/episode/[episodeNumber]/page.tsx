@@ -41,7 +41,7 @@ const SERVERS = [
   {
     name: "VidLink",
     getUrl: (id: string, season: string, episode: string) =>
-      `https://vidlink.pro/tv/{id}/{season}/{episode}`,
+      `https://vidlink.pro/tv/${id}/${season}/${episode}`,
   },
   {
     name: "VidJoy",
