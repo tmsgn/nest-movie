@@ -39,14 +39,14 @@ const TV_GENRE_API =
 
 const SERVERS = [
   {
-    name: "VidLink",
+    name: "Videasy",
     getUrl: (id: string, season: string, episode: string) =>
       `https://vidlink.pro/tv/${id}/${season}/${episode}`,
   },
-  {
-    name: "VidJoy",
+{
+    name: "VidLink",
     getUrl: (id: string, season: string, episode: string) =>
-      `https://vidjoy.pro/embed/tv/${id}/${season}/${episode}`,
+      `https://player.videasy.net/tv/${id}/${season}/${episode}`,
   },
   {
     name: "VidSrc",
