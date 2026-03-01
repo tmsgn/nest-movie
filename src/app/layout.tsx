@@ -41,18 +41,39 @@ export default function RootLayout({
           href="/apple-touch-icon.png"
         />
         <link rel="manifest" href="/site.webmanifest" />
+
+        {/* DNS prefetch for external resources */}
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://image.tmdb.org" />
+        <link rel="dns-prefetch" href="https://api.themoviedb.org" />
+
+        {/* Preconnect only the critical connections */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+
+        {/*
+          Use display=swap so text is shown immediately with fallback font,
+          and the custom font swaps in non-blocking.
+          Only load weights we actually use: 400, 600, 700, 800
+        */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap"
           rel="stylesheet"
         />
+
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#0a0a0f" />
+
+        {/* Preload TMDB image domain */}
+        <link
+          rel="preconnect"
+          href="https://image.tmdb.org"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className="scrollbar">
         <NavBar />

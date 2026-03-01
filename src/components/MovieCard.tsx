@@ -19,12 +19,18 @@ interface Movie {
   media_type: "movie" | "tv" | string;
 }
 
-export default function MovieCard({ movie }: { movie: Movie }) {
+// Priority is passed from the parent — only the first ~6 cards should be priority
+export default function MovieCard({
+  movie,
+  priority = false,
+}: {
+  movie: Movie;
+  priority?: boolean;
+}) {
   const itemTitle = movie.title || movie.name || "";
   const releaseDate = movie.release_date || movie.first_air_date;
   const releaseYear = releaseDate ? new Date(releaseDate).getFullYear() : null;
   const [loaded, setLoaded] = useState(false);
-  const [hovered, setHovered] = useState(false);
 
   const slug = itemTitle
     ? encodeURIComponent(
@@ -47,25 +53,12 @@ export default function MovieCard({ movie }: { movie: Movie }) {
   const isTV = movie.media_type === "tv";
 
   return (
-    <Link href={href} style={{ display: "block", textDecoration: "none" }}>
-      <div
-        style={{
-          borderRadius: 10,
-          overflow: "hidden",
-          background: "var(--clr-surface)",
-          boxShadow: hovered
-            ? "0 14px 40px rgba(0,0,0,0.75), 0 0 20px rgba(245,197,24,0.15)"
-            : "0 4px 18px rgba(0,0,0,0.5)",
-          transform: hovered
-            ? "translateY(-5px) scale(1.03)"
-            : "translateY(0) scale(1)",
-          transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
-          cursor: "pointer",
-          position: "relative",
-        }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
+    <Link
+      href={href}
+      style={{ display: "block", textDecoration: "none" }}
+      className="movie-card-link"
+    >
+      <div className="movie-card-inner">
         {/* Poster */}
         <div
           style={{
@@ -83,7 +76,7 @@ export default function MovieCard({ movie }: { movie: Movie }) {
           <Image
             src={
               movie.poster_path
-                ? `https://image.tmdb.org/t/p/w400${movie.poster_path}`
+                ? `https://image.tmdb.org/t/p/w342${movie.poster_path}`
                 : "/fallback.jpg"
             }
             alt={`${itemTitle} Poster`}
@@ -93,40 +86,20 @@ export default function MovieCard({ movie }: { movie: Movie }) {
             style={{
               objectFit: "cover",
               opacity: loaded ? 1 : 0,
-              transition: "opacity 0.4s",
+              transition: "opacity 0.35s ease",
             }}
-            priority
+            // Only priority if parent says so (first ~6 visible cards)
+            priority={priority}
+            // Use lazy loading for non-priority cards
+            loading={priority ? "eager" : "lazy"}
           />
 
-          {/* Hover overlay */}
-          {hovered && (
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background:
-                  "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.35) 50%, transparent 100%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <div
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: "50%",
-                  background: "rgba(245,197,24,0.95)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: "0 0 20px rgba(245,197,24,0.6)",
-                }}
-              >
-                <FaPlay size={15} color="#0a0a0f" style={{ marginLeft: 2 }} />
-              </div>
+          {/* Hover overlay — CSS only, no JS state */}
+          <div className="movie-card-overlay">
+            <div className="movie-card-play-btn">
+              <FaPlay size={15} color="#0a0a0f" style={{ marginLeft: 2 }} />
             </div>
-          )}
+          </div>
 
           {/* Favorite button */}
           <div

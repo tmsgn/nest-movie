@@ -4,6 +4,7 @@ import { FaPlay, FaInfoCircle } from "react-icons/fa";
 import { MdStar } from "react-icons/md";
 import { useRouter } from "next/navigation";
 import { ReactNode, useState } from "react";
+import Image from "next/image";
 
 type MovieSliderItem = {
   vote_average: ReactNode;
@@ -32,6 +33,9 @@ export default function MovieSlider({ movies }: Props) {
   const router = useRouter();
   const [activeIdx, setActiveIdx] = useState(0);
 
+  // Limit to first 8 items — no need to preload 20 large hero images
+  const sliderMovies = movies.slice(0, 8);
+
   const handlePlay = (movie: MovieSliderItem) => {
     if (movie.media_type === "movie") {
       router.push(`/movie/${movie.id}/${slugify(movie.title || movie.name)}`);
@@ -43,20 +47,21 @@ export default function MovieSlider({ movies }: Props) {
   const settings = {
     dots: false,
     infinite: true,
-    speed: 900,
+    speed: 700,
     slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 5500,
+    autoplaySpeed: 6000,
     arrows: false,
     pauseOnHover: true,
+    lazyLoad: "ondemand" as const,
     beforeChange: (_: number, next: number) => setActiveIdx(next),
   };
 
   return (
     <div style={{ position: "relative", width: "100%", marginBottom: 40 }}>
       <Slider {...settings}>
-        {movies.map((movie, idx) => {
+        {sliderMovies.map((movie, idx) => {
           const releaseYear =
             movie.release_date?.slice(0, 4) ||
             movie.first_air_date?.slice(0, 4) ||
@@ -75,20 +80,24 @@ export default function MovieSlider({ movies }: Props) {
                   background: "#0a0a0f",
                 }}
               >
-                {/* Backdrop */}
-                <img
-                  src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
-                  alt={title}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    objectPosition: "center top",
-                    filter: "brightness(0.55) saturate(1.1)",
-                    transition: "transform 8s ease",
-                    transform: idx === activeIdx ? "scale(1.03)" : "scale(1)",
-                  }}
-                />
+                {/* Backdrop — use w1280 (not /original) and Next.js Image optimization */}
+                {movie.backdrop_path && (
+                  <Image
+                    src={`https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`}
+                    alt={title}
+                    fill
+                    sizes="100vw"
+                    // Only the first slide gets priority loading, the rest lazy-load
+                    priority={idx === 0}
+                    style={{
+                      objectFit: "cover",
+                      objectPosition: "center top",
+                      filter: "brightness(0.55) saturate(1.1)",
+                      transform: idx === activeIdx ? "scale(1.03)" : "scale(1)",
+                      transition: "transform 8s ease",
+                    }}
+                  />
+                )}
 
                 {/* Gradient overlays */}
                 <div
@@ -224,69 +233,14 @@ export default function MovieSlider({ movies }: Props) {
                   <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                     <button
                       onClick={() => handlePlay(movie)}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 8,
-                        padding: "11px 28px",
-                        background: "linear-gradient(135deg, #f5c518, #e8a800)",
-                        color: "#0a0a0f",
-                        borderRadius: 99,
-                        fontWeight: 800,
-                        fontSize: "0.9rem",
-                        letterSpacing: "0.01em",
-                        cursor: "pointer",
-                        border: "none",
-                        boxShadow: "0 4px 20px rgba(245,197,24,0.4)",
-                        transition: "all 0.25s",
-                      }}
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLButtonElement).style.transform =
-                          "translateY(-2px)";
-                        (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                          "0 8px 28px rgba(245,197,24,0.55)";
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLButtonElement).style.transform =
-                          "translateY(0)";
-                        (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                          "0 4px 20px rgba(245,197,24,0.4)";
-                      }}
+                      className="slider-btn-primary"
                     >
                       <FaPlay size={13} />
                       Play Now
                     </button>
                     <button
                       onClick={() => handlePlay(movie)}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 8,
-                        padding: "11px 24px",
-                        background: "rgba(255,255,255,0.1)",
-                        color: "#e8e8f0",
-                        borderRadius: 99,
-                        fontWeight: 600,
-                        fontSize: "0.9rem",
-                        cursor: "pointer",
-                        border: "1px solid rgba(255,255,255,0.18)",
-                        transition: "all 0.25s",
-                        backdropFilter: "blur(8px)",
-                      }}
-                      onMouseEnter={(e) => {
-                        (
-                          e.currentTarget as HTMLButtonElement
-                        ).style.background = "rgba(255,255,255,0.18)";
-                        (e.currentTarget as HTMLButtonElement).style.transform =
-                          "translateY(-2px)";
-                      }}
-                      onMouseLeave={(e) => {
-                        (
-                          e.currentTarget as HTMLButtonElement
-                        ).style.background = "rgba(255,255,255,0.10)";
-                        (e.currentTarget as HTMLButtonElement).style.transform =
-                          "translateY(0)";
-                      }}
+                      className="slider-btn-secondary"
                     >
                       <FaInfoCircle size={14} />
                       More Info
@@ -304,7 +258,7 @@ export default function MovieSlider({ movies }: Props) {
                     gap: 6,
                   }}
                 >
-                  {movies.map((_, i) => (
+                  {sliderMovies.map((_, i) => (
                     <div
                       key={i}
                       style={{
@@ -325,6 +279,49 @@ export default function MovieSlider({ movies }: Props) {
           );
         })}
       </Slider>
+
+      {/* CSS moved to a style tag to avoid inline JS hover handlers */}
+      <style>{`
+        .slider-btn-primary {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 11px 28px;
+          background: linear-gradient(135deg, #f5c518, #e8a800);
+          color: #0a0a0f;
+          border-radius: 99px;
+          font-weight: 800;
+          font-size: 0.9rem;
+          letter-spacing: 0.01em;
+          cursor: pointer;
+          border: none;
+          box-shadow: 0 4px 20px rgba(245,197,24,0.4);
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .slider-btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 28px rgba(245,197,24,0.55);
+        }
+        .slider-btn-secondary {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 11px 24px;
+          background: rgba(255,255,255,0.1);
+          color: #e8e8f0;
+          border-radius: 99px;
+          font-weight: 600;
+          font-size: 0.9rem;
+          cursor: pointer;
+          border: 1px solid rgba(255,255,255,0.18);
+          transition: background 0.2s, transform 0.2s;
+          backdrop-filter: blur(8px);
+        }
+        .slider-btn-secondary:hover {
+          background: rgba(255,255,255,0.18);
+          transform: translateY(-2px);
+        }
+      `}</style>
     </div>
   );
 }

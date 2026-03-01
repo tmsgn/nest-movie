@@ -165,6 +165,8 @@ export default async function MoviePage({ params }: Props) {
               filter: "brightness(0.45) saturate(1.1)",
             }}
             loading="eager"
+            // @ts-ignore
+            fetchpriority="high"
             decoding="async"
           />
           <div
@@ -218,6 +220,8 @@ export default async function MoviePage({ params }: Props) {
                 alt={movie.title}
                 style={{ width: "100%", height: "auto", display: "block" }}
                 loading="eager"
+                // @ts-ignore
+                fetchpriority="high"
               />
             </div>
           )}

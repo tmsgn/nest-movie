@@ -132,8 +132,8 @@ export default async function HomePage() {
                 gap: 14,
               }}
             >
-              {movieArray.map((movie) => (
-                <MovieCard key={movie.id} movie={movie} />
+              {movieArray.map((movie, idx) => (
+                <MovieCard key={movie.id} movie={movie} priority={idx < 6} />
               ))}
             </div>
           </section>
@@ -184,9 +184,11 @@ export default async function HomePage() {
                 gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))",
                 gap: 14,
               }}
+              className="content-section"
             >
-              {tvShowArray.map((tvshow) => (
-                <MovieCard key={tvshow.id} movie={tvshow} />
+              {tvShowArray.map((tvshow, idx) => (
+                // TV section is below the fold — no priority at all
+                <MovieCard key={tvshow.id} movie={tvshow} priority={false} />
               ))}
             </div>
           </section>

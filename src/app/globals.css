@@ -197,6 +197,71 @@ body {
     var(--shadow-glow);
 }
 
+/* === MovieCard CSS-only hover (faster than JS useState) === */
+.movie-card-link {
+  display: block;
+  text-decoration: none;
+}
+.movie-card-inner {
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--clr-surface);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+  transform: translateY(0) scale(1);
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  /* GPU compositing hint — prevents repaints during hover */
+  will-change: transform;
+}
+.movie-card-link:hover .movie-card-inner {
+  transform: translateY(-5px) scale(1.03);
+  box-shadow:
+    0 14px 40px rgba(0, 0, 0, 0.75),
+    0 0 20px rgba(245, 197, 24, 0.15);
+}
+.movie-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.92) 0%,
+    rgba(0, 0, 0, 0.35) 50%,
+    transparent 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.movie-card-link:hover .movie-card-overlay {
+  opacity: 1;
+}
+.movie-card-play-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(245, 197, 24, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px rgba(245, 197, 24, 0.6);
+  transform: scale(0.85);
+  transition: transform 0.25s ease;
+}
+.movie-card-link:hover .movie-card-play-btn {
+  transform: scale(1);
+}
+
+/* === Performance: offscreen content === */
+.content-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 500px;
+}
+
 /* === Genre pill === */
 .pill {
   display: inline-block;
