@@ -1,10 +1,8 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import {
   getTvshowDetail,
   getTvshowEpisodes,
@@ -12,6 +10,13 @@ import {
 } from "@/lib/fetchMovies";
 import MovieCard from "@/components/MovieCard";
 import AddToFavBtn from "@/components/AddToFavBtn";
+import {
+  MdStar,
+  MdExpandMore,
+  MdChevronLeft,
+  MdChevronRight,
+} from "react-icons/md";
+import { FiMonitor } from "react-icons/fi";
 
 type Tvshow = {
   id: number;
@@ -22,10 +27,10 @@ type Tvshow = {
   status: string;
   vote_average: number;
   vote_count: number;
-  genres?: string[];
+  genres?: any[];
   media_type: string;
 };
-type Epsoides = {
+type Episode = {
   id: number;
   name: string;
   overview: string;
@@ -37,28 +42,28 @@ type Epsoides = {
 const TV_GENRE_API =
   "https://api.themoviedb.org/3/genre/tv/list?api_key=b6a27c41bfadea6397dcd72c3877cac1";
 
+/* VidFast is FIRST = default */
 const SERVERS = [
+  {
+    name: "VidFast",
+    getUrl: (id: string, season: string, episode: string) =>
+      `https://vidfast.pro/tv/${id}/${season}/${episode}?autoPlay=false`,
+  },
   {
     name: "Videasy",
     getUrl: (id: string, season: string, episode: string) =>
-      `https://vidlink.pro/tv/${id}/${season}/${episode}`,
+      `https://player.videasy.net/tv/${id}/${season}/${episode}`,
   },
-{
+  {
     name: "VidLink",
     getUrl: (id: string, season: string, episode: string) =>
-      `https://player.videasy.net/tv/${id}/${season}/${episode}`,
+      `https://vidlink.pro/tv/${id}/${season}/${episode}`,
   },
   {
     name: "VidSrc",
     getUrl: (id: string, season: string, episode: string) =>
       `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}?autoPlay=false`,
   },
-  {
-    name: "VidFast",
-    getUrl: (id: string, season: string, episode: string) =>
-      `https://vidfast.pro/tv/${id}/${season}/${episode}?nextButton=false&autoNext=false`,
-  },
- 
 ];
 
 export default function EpisodePage() {
@@ -71,237 +76,243 @@ export default function EpisodePage() {
   const { id, seasonNumber, episodeNumber } = params;
 
   const [tvshow, setTvshow] = useState<Tvshow | null>(null);
-  const [episodes, setEpisodes] = useState<Epsoides[]>([]);
-  const [recommendedTvshows, setRecommendedTvshows] = useState<Tvshow[]>([]);
+  const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [recommendedTvshows, setRecommendedTvshows] = useState<any[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedSeason, setSelectedSeason] = useState<number>(
-    Number(seasonNumber)
+    Number(seasonNumber),
   );
   const [seasonKeys, setSeasonKeys] = useState<number[]>([]);
-
   const [currentPage, setCurrentPage] = useState(1);
   const episodesPerPage = 12;
 
-  // Loading states
   const [iframeLoading, setIframeLoading] = useState(true);
   const [posterLoading, setPosterLoading] = useState(true);
   const [episodeImageLoading, setEpisodeImageLoading] = useState<{
     [key: number]: boolean;
   }>({});
-
-  // --- Only for genre name fix ---
   const [tvGenres, setTvGenres] = useState<{ id: number; name: string }[]>([]);
-
-  // Server selection state
   const [selectedServer, setSelectedServer] = useState(SERVERS[0].name);
 
   useEffect(() => {
-    async function fetchGenres() {
-      try {
-        const res = await axios.get(TV_GENRE_API);
-        setTvGenres(res.data.genres);
-      } catch (e) {
-        setTvGenres([]);
-      }
-    }
-    fetchGenres();
+    fetch(`${TV_GENRE_API}`)
+      .then((r) => r.json())
+      .then((data) => setTvGenres(data.genres || []))
+      .catch(() => {});
   }, []);
-  // --- End genre name fix ---
 
   useEffect(() => {
-    async function fetchTvshow() {
-      if (id) {
-        const data = await getTvshowDetail(Number(id));
-        setTvshow(data);
-        if (data && data.seasons) {
-          const keys = data.seasons
+    if (!id) return;
+    getTvshowDetail(Number(id)).then((data) => {
+      setTvshow(data);
+      if (data?.seasons) {
+        setSeasonKeys(
+          data.seasons
             .map((s: any) => s.season_number)
-            .filter((num: number) => num > 0);
-          setSeasonKeys(keys);
-        }
+            .filter((n: number) => n > 0),
+        );
       }
-    }
-    fetchTvshow();
+    });
   }, [id]);
 
   useEffect(() => {
-    async function fetchRecommendedTvshows() {
-      if (id) {
-        const data = await RecommendedTvshows(Number(id));
-        // Map genre_ids to genre names for MovieCard
-        const mapped = (data || []).map((show: any) => ({
-          ...show,
-          genres: show.genre_ids
-            ? show.genre_ids
-                .map((gid: number) => tvGenres.find((g) => g.id === gid)?.name)
-                .filter(Boolean)
-            : [],
-        }));
-        setRecommendedTvshows(mapped);
-      }
-    }
-    // Only fetch after genres are loaded
-    if (tvGenres.length) fetchRecommendedTvshows();
+    if (!id || !tvGenres.length) return;
+    RecommendedTvshows(Number(id)).then((data) => {
+      const mapped = (data || []).map((show: any) => ({
+        ...show,
+        genres: show.genre_ids
+          ? show.genre_ids
+              .map((gid: number) => tvGenres.find((g) => g.id === gid)?.name)
+              .filter(Boolean)
+          : [],
+      }));
+      setRecommendedTvshows(mapped);
+    });
   }, [id, tvGenres]);
 
   useEffect(() => {
-    async function fetchEpisodes() {
-      if (id && selectedSeason) {
-        const data = await getTvshowEpisodes(Number(id), selectedSeason);
-        setEpisodes(data.episodes || []);
-        setCurrentPage(1);
-      }
-    }
-    fetchEpisodes();
+    if (!id || !selectedSeason) return;
+    getTvshowEpisodes(Number(id), selectedSeason).then((data) => {
+      setEpisodes(data?.episodes || []);
+      setCurrentPage(1);
+    });
   }, [id, selectedSeason]);
-
-  const handleSeasonSelect = (season: number) => {
-    setSelectedSeason(season);
-    setIsDropdownOpen(false);
-  };
-
-  const handlePrev = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
-  };
-
-  const handleNext = () => {
-    const maxPages = Math.ceil(episodes.length / episodesPerPage);
-    setCurrentPage((prev) => Math.min(prev + 1, maxPages));
-  };
 
   const totalPages = Math.ceil(episodes.length / episodesPerPage);
   const startIndex = (currentPage - 1) * episodesPerPage;
-  const endIndex = startIndex + episodesPerPage;
-  const currentEpisodes = episodes.slice(startIndex, endIndex);
+  const currentEpisodes = episodes.slice(
+    startIndex,
+    startIndex + episodesPerPage,
+  );
 
   if (!tvshow) {
-    return null;
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "var(--clr-bg)",
+          paddingTop: 80,
+        }}
+      >
+        <div
+          className="skeleton"
+          style={{ width: 120, height: 120, borderRadius: "50%" }}
+        />
+      </div>
+    );
   }
 
-  // Get the selected server object
   const serverObj =
     SERVERS.find((s) => s.name === selectedServer) || SERVERS[0];
   const iframeUrl = serverObj.getUrl(id, seasonNumber, episodeNumber);
 
   return (
-    <div className="w-screen h-full overflow-x-hidden">
-      <div className="flex  flex-col mr-5 gap-4 px-1 sm:px-4">
-        {/* IFRAME & DETAILS */}
-        <div className="flex flex-col lg:flex-row gap-4">
-          <div className="relative w-full lg:w-2/3">
-          
-           <iframe
-  src={iframeUrl}
-  className={`w-full md:min-h-96 min-h-64 sm:h-[60vh] md:h-[40vh] lg:h-[75vh] rounded-lg shadow-md ${
-    iframeLoading ? "invisible" : ""
-  }`}
-  allowFullScreen
-  onLoad={() => setIframeLoading(false)}
-></iframe>
+    <div
+      style={{
+        background: "var(--clr-bg)",
+        minHeight: "100vh",
+        paddingTop: 68,
+        overflowX: "hidden",
+      }}
+    >
+      <div
+        style={{ maxWidth: 1280, margin: "0 auto", padding: "16px 12px 60px" }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {/* Top: Player + Info */}
+          <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
+            {/* Player col */}
+            <div style={{ flex: "2 1 420px", minWidth: 0 }}>
+              {/* Server selector */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  marginBottom: 10,
+                  flexWrap: "wrap",
+                }}
+              >
+                <span
+                  style={{
+                    color: "#8888a8",
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 5,
+                  }}
+                >
+                  <FiMonitor size={13} /> Server:
+                </span>
+                {SERVERS.map((server) => (
+                  <button
+                    key={server.name}
+                    onClick={() => {
+                      setIframeLoading(true);
+                      setSelectedServer(server.name);
+                    }}
+                    style={{
+                      padding: "6px 15px",
+                      borderRadius: 8,
+                      fontSize: "0.8rem",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                      border: "1px solid",
+                      borderColor:
+                        selectedServer === server.name
+                          ? "#f5c518"
+                          : "rgba(255,255,255,0.1)",
+                      background:
+                        selectedServer === server.name
+                          ? "#f5c518"
+                          : "rgba(255,255,255,0.05)",
+                      color:
+                        selectedServer === server.name ? "#0a0a0f" : "#e8e8f0",
+                      boxShadow:
+                        selectedServer === server.name
+                          ? "0 0 12px rgba(245,197,24,0.35)"
+                          : "none",
+                    }}
+                  >
+                    {server.name}
+                  </button>
+                ))}
+              </div>
 
-          </div>
-          <div className="flex flex-col  lg:w-1/3">
-            <div className="flex sm:flex-row gap-3">
-              <div className="w-36  min-w-36 max-w-52 flex-1 mx-auto sm:mx-0 relative">
-                {posterLoading && (
-                  <div className="animate-pulse bg-gray-300 rounded-lg w-full h-[300px] absolute inset-0" />
+              {/* iframe */}
+              <div
+                style={{
+                  position: "relative",
+                  borderRadius: 14,
+                  overflow: "hidden",
+                  background: "#000",
+                  boxShadow: "0 8px 48px rgba(0,0,0,0.8)",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                }}
+              >
+                {iframeLoading && (
+                  <div
+                    className="skeleton"
+                    style={{
+                      width: "100%",
+                      paddingTop: "56.25%",
+                      borderRadius: 0,
+                    }}
+                  />
                 )}
-                <Image
-                  className={`rounded-lg w-full h-auto max-w-full object-cover ${
-                    posterLoading ? "invisible" : ""
-                  }`}
-                  src={`https://image.tmdb.org/t/p/w500${tvshow.poster_path}`}
-                  alt={tvshow.name || "Episode Image"}
-                  width={200}
-                  height={300}
-                  onLoad={() => setPosterLoading(false)}
+                <iframe
+                  key={iframeUrl}
+                  src={iframeUrl}
+                  style={{
+                    width: "100%",
+                    aspectRatio: "16/9",
+                    display: "block",
+                    border: "none",
+                    opacity: iframeLoading ? 0 : 1,
+                    transition: "opacity 0.4s",
+                    position: iframeLoading ? "absolute" : "relative",
+                    top: 0,
+                    left: 0,
+                  }}
+                  allowFullScreen
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  onLoad={() => setIframeLoading(false)}
                 />
-                <AddToFavBtn movie={tvshow} />
               </div>
-              <div className="sm:ml-4 flex flex-col justify-start">
-                <h1 className="text-xl sm:text-2xl font-bold line-clamp-2">
-                  {tvshow.name}
-                </h1>
-                <h1 className="mt-2 bg-yellow-400 w-fit px-1 py-0.5 rounded-sm text-gray-700 text-sm">
-                  S{seasonNumber}-E{episodeNumber}
-                </h1>
-                <div className="mt-3 text-gray-300 space-y-1 text-sm sm:text-base">
-                  <span className="flex gap-2">
-                    <h1>Release date:</h1>
-                    <h1>
-                      {new Date(tvshow.first_air_date).toLocaleDateString(
-                        "en-US",
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        }
-                      )}
-                    </h1>
-                  </span>
-                  <span className="flex gap-2 md:mt-2">
-                    <h1>Language:</h1>
-                    <h1>{tvshow.original_language.toUpperCase()}</h1>
-                  </span>
-                  <span className="flex gap-2 md:mt-2">
-                    <h1>Status:</h1>
-                    <h1>{tvshow.status}</h1>
-                  </span>
-                  <span className="flex gap-2 md:mt-2">
-                    <h1>Rating:</h1>
-                    <h1>
-                      {tvshow.vote_average.toFixed(1)} / 10 ({tvshow.vote_count}{" "}
-                      votes)
-                    </h1>
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2 md:mt-4">
-                  {tvshow.genres &&
-                    tvshow.genres.map((g: any) => (
-                      <span
-                        key={g.id || g}
-                        className="text-xs sm:text-sm font-medium text-gray-700 bg-yellow-400 px-2 py-1 rounded"
-                      >
-                        {g.name || g}
-                      </span>
-                    ))}
-                </div>
-              </div>
-            </div>
-            <div>
-              <h1 className="mt-4 text-base sm:text-lg font-bold text-yellow-400">
-                Description:
-              </h1>
-              {episodes.length > 0 && (
-                <h1 className="line-clamp-4 mt-3 text-sm sm:text-base">
-                  {episodes.find(
-                    (ep) =>
-                      ep.episode_number === Number(episodeNumber) &&
-                      selectedSeason === Number(selectedSeason)
-                  )?.overview || "No description available for this episode."}
-                </h1>
-              )}
-              <div className="flex gap-4 mt-4">
+
+              <p
+                style={{
+                  marginTop: 8,
+                  fontSize: "0.74rem",
+                  color: "#8888a8",
+                  textAlign: "center",
+                }}
+              >
+                If the player fails, switch server above.
+              </p>
+
+              {/* Prev / Next episode */}
+              <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
                 <button
                   onClick={() => {
                     if (Number(episodeNumber) > 1) {
                       router.push(
-                        `/tv/${tvshow.id}/${
-                          tvshow.name
-                        }/season/${selectedSeason}/episode/${
-                          Number(episodeNumber) - 1
-                        }`
+                        `/tv/${tvshow.id}/${tvshow.name}/season/${selectedSeason}/episode/${Number(episodeNumber) - 1}`,
                       );
                     } else if (selectedSeason > Math.min(...seasonKeys)) {
-                      const prevSeason = selectedSeason - 1;
-                      const prevSeasonEpisodes = episodes.filter(
-                        (ep) => ep.season_number === prevSeason
+                      const prev = selectedSeason - 1;
+                      const prevEps = episodes.filter(
+                        (ep) => ep.season_number === prev,
                       );
-                      const lastEpisodeNumber =
-                        prevSeasonEpisodes[prevSeasonEpisodes.length - 1]
-                          ?.episode_number || 1;
+                      const last =
+                        prevEps[prevEps.length - 1]?.episode_number || 1;
                       router.push(
-                        `/tv/${tvshow.id}/${tvshow.name}/season/${prevSeason}/episode/${lastEpisodeNumber}`
+                        `/tv/${tvshow.id}/${tvshow.name}/season/${prev}/episode/${last}`,
                       );
                     }
                   }}
@@ -309,32 +320,48 @@ export default function EpisodePage() {
                     Number(episodeNumber) === 1 &&
                     selectedSeason === Math.min(...seasonKeys)
                   }
-                  className={`px-4 py-2 rounded ${
-                    Number(episodeNumber) === 1 &&
-                    selectedSeason === Math.min(...seasonKeys)
-                      ? "bg-gray-600 cursor-not-allowed"
-                      : "bg-yellow-400 cursor-pointer text-gray-800"
-                  }`}
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    borderRadius: 10,
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    background:
+                      Number(episodeNumber) === 1 &&
+                      selectedSeason === Math.min(...seasonKeys)
+                        ? "rgba(255,255,255,0.03)"
+                        : "var(--clr-surface2)",
+                    color:
+                      Number(episodeNumber) === 1 &&
+                      selectedSeason === Math.min(...seasonKeys)
+                        ? "#8888a8"
+                        : "#e8e8f0",
+                    cursor:
+                      Number(episodeNumber) === 1 &&
+                      selectedSeason === Math.min(...seasonKeys)
+                        ? "not-allowed"
+                        : "pointer",
+                    fontWeight: 600,
+                    fontSize: "0.85rem",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                  }}
                 >
-                  Previous
+                  <MdChevronLeft size={18} /> Previous
                 </button>
                 <button
                   onClick={() => {
                     if (
                       Number(episodeNumber) <
-                      episodes[episodes.length - 1]?.episode_number
+                      (episodes[episodes.length - 1]?.episode_number || 0)
                     ) {
                       router.push(
-                        `/tv/${tvshow.id}/${
-                          tvshow.name
-                        }/season/${selectedSeason}/episode/${
-                          Number(episodeNumber) + 1
-                        }`
+                        `/tv/${tvshow.id}/${tvshow.name}/season/${selectedSeason}/episode/${Number(episodeNumber) + 1}`,
                       );
                     } else if (selectedSeason < Math.max(...seasonKeys)) {
-                      const nextSeason = selectedSeason + 1;
                       router.push(
-                        `/tv/${tvshow.id}/${tvshow.name}/season/${nextSeason}/episode/1`
+                        `/tv/${tvshow.id}/${tvshow.name}/season/${selectedSeason + 1}/episode/1`,
                       );
                     }
                   }}
@@ -343,175 +370,583 @@ export default function EpisodePage() {
                       episodes[episodes.length - 1]?.episode_number &&
                     selectedSeason === Math.max(...seasonKeys)
                   }
-                  className={`px-4 py-2 rounded ${
-                    Number(episodeNumber) ===
-                      episodes[episodes.length - 1]?.episode_number &&
-                    selectedSeason === Math.max(...seasonKeys)
-                      ? "bg-gray-600 cursor-not-allowed"
-                      : "bg-yellow-400 cursor-pointer text-gray-800"
-                  }`}
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    borderRadius: 10,
+                    border: "1px solid",
+                    borderColor:
+                      Number(episodeNumber) ===
+                        episodes[episodes.length - 1]?.episode_number &&
+                      selectedSeason === Math.max(...seasonKeys)
+                        ? "rgba(255,255,255,0.1)"
+                        : "rgba(245,197,24,0.35)",
+                    background:
+                      Number(episodeNumber) ===
+                        episodes[episodes.length - 1]?.episode_number &&
+                      selectedSeason === Math.max(...seasonKeys)
+                        ? "rgba(255,255,255,0.03)"
+                        : "rgba(245,197,24,0.12)",
+                    color:
+                      Number(episodeNumber) ===
+                        episodes[episodes.length - 1]?.episode_number &&
+                      selectedSeason === Math.max(...seasonKeys)
+                        ? "#8888a8"
+                        : "#f5c518",
+                    cursor:
+                      Number(episodeNumber) ===
+                        episodes[episodes.length - 1]?.episode_number &&
+                      selectedSeason === Math.max(...seasonKeys)
+                        ? "not-allowed"
+                        : "pointer",
+                    fontWeight: 700,
+                    fontSize: "0.85rem",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                  }}
                 >
-                  Next
+                  Next <MdChevronRight size={18} />
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-        {/* SERVER SELECTOR */}
-        <div className="flex gap-2 mb-2 mt-4">
-          <span className="font-semibold text-gray-700">Choose Server:</span>
-          {SERVERS.map((server) => (
-            <button
-              key={server.name}
-              onClick={() => {
-                setIframeLoading(true);
-                setSelectedServer(server.name);
-              }}
-              className={`px-3 py-1 rounded transition text-sm font-medium ${
-                selectedServer === server.name
-                  ? "bg-yellow-400 text-gray-900"
-                  : "bg-gray-800 text-white hover:bg-yellow-500 hover:text-gray-900"
-              }`}
-            >
-              {server.name}
-            </button>
-          ))}
-        </div>
-        {/* DROPDOWN + EPISODES */}
-        <div className="mt-4">
-          <div className="flex items-center gap-2 mb-4 relative">
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="bg-gray-800 text-white px-4 py-2 rounded-lg text-base sm:text-lg font-semibold flex items-center gap-2 cursor-pointer"
-            >
-              Season {selectedSeason}
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
 
-            {isDropdownOpen && (
-              <div className="absolute top-full max-h-40 overflow-y-scroll scrollbar mt-2 bg-gray-800 text-white rounded-lg shadow-lg z-10">
-                {seasonKeys.map((season) => (
-                  <button
-                    key={season}
-                    onClick={() => handleSeasonSelect(season)}
-                    className="block px-4 py-2 hover:bg-gray-700 w-full text-left cursor-pointer"
+            {/* Info col */}
+            <div style={{ flex: "1 1 220px", minWidth: 220 }}>
+              <div style={{ display: "flex", gap: 14 }}>
+                {/* Poster */}
+                <div
+                  style={{
+                    width: 100,
+                    flexShrink: 0,
+                    borderRadius: 10,
+                    overflow: "hidden",
+                    boxShadow: "0 6px 28px rgba(0,0,0,0.6)",
+                    border: "2px solid rgba(255,255,255,0.08)",
+                    position: "relative",
+                  }}
+                >
+                  {posterLoading && (
+                    <div
+                      className="skeleton"
+                      style={{
+                        width: "100%",
+                        paddingTop: "150%",
+                        borderRadius: 0,
+                      }}
+                    />
+                  )}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`https://image.tmdb.org/t/p/w185${tvshow.poster_path}`}
+                    alt={tvshow.name}
+                    style={{
+                      width: "100%",
+                      height: "auto",
+                      display: "block",
+                      opacity: posterLoading ? 0 : 1,
+                      transition: "opacity 0.4s",
+                      position: posterLoading ? "absolute" : "relative",
+                    }}
+                    onLoad={() => setPosterLoading(false)}
+                  />
+                  <div style={{ position: "absolute", top: 4, right: 4 }}>
+                    <AddToFavBtn movie={{ ...tvshow, media_type: "tv" }} />
+                  </div>
+                </div>
+
+                {/* Details */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h1
+                    style={{
+                      fontSize: "1.1rem",
+                      fontWeight: 800,
+                      color: "#fff",
+                      lineHeight: 1.25,
+                      marginBottom: 6,
+                    }}
                   >
-                    Season {season}
-                  </button>
-                ))}
+                    {tvshow.name}
+                  </h1>
+                  <span
+                    style={{
+                      display: "inline-block",
+                      background: "rgba(245,197,24,0.9)",
+                      color: "#0a0a0f",
+                      fontSize: "0.72rem",
+                      fontWeight: 800,
+                      padding: "3px 10px",
+                      borderRadius: 6,
+                      letterSpacing: "0.04em",
+                      marginBottom: 10,
+                    }}
+                  >
+                    S{seasonNumber}·E{episodeNumber}
+                  </span>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 5,
+                      color: "rgba(232,232,240,0.7)",
+                      fontSize: "0.82rem",
+                    }}
+                  >
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <span style={{ color: "#8888a8", minWidth: 70 }}>
+                        Release:
+                      </span>
+                      <span>
+                        {new Date(tvshow.first_air_date).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          },
+                        )}
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <span style={{ color: "#8888a8", minWidth: 70 }}>
+                        Language:
+                      </span>
+                      <span>{tvshow.original_language?.toUpperCase()}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <span style={{ color: "#8888a8", minWidth: 70 }}>
+                        Status:
+                      </span>
+                      <span
+                        style={{
+                          color:
+                            tvshow.status === "Returning Series"
+                              ? "#4ade80"
+                              : "#e8e8f0",
+                        }}
+                      >
+                        {tvshow.status}
+                      </span>
+                    </div>
+                    <div
+                      style={{ display: "flex", gap: 8, alignItems: "center" }}
+                    >
+                      <span style={{ color: "#8888a8", minWidth: 70 }}>
+                        Rating:
+                      </span>
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 3,
+                          color: "#f5c518",
+                          fontWeight: 700,
+                        }}
+                      >
+                        <MdStar size={13} />
+                        {tvshow.vote_average.toFixed(1)}
+                        <span
+                          style={{
+                            color: "#8888a8",
+                            fontWeight: 400,
+                            fontSize: "0.75rem",
+                          }}
+                        >
+                          ({tvshow.vote_count?.toLocaleString()})
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Genres */}
+                  {tvshow.genres && (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 5,
+                        marginTop: 10,
+                      }}
+                    >
+                      {tvshow.genres.map((g: any) => (
+                        <span
+                          key={g.id || g}
+                          style={{
+                            padding: "3px 10px",
+                            borderRadius: 99,
+                            fontSize: "0.68rem",
+                            fontWeight: 600,
+                            background: "rgba(255,255,255,0.07)",
+                            color: "rgba(232,232,240,0.7)",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                          }}
+                        >
+                          {g.name || g}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Episode description */}
+              {episodes.length > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <h3
+                    style={{
+                      fontSize: "0.85rem",
+                      fontWeight: 700,
+                      color: "#f5c518",
+                      marginBottom: 6,
+                    }}
+                  >
+                    Episode Description
+                  </h3>
+                  <p
+                    style={{
+                      color: "rgba(232,232,240,0.65)",
+                      fontSize: "0.82rem",
+                      lineHeight: 1.65,
+                    }}
+                  >
+                    {episodes.find(
+                      (ep) =>
+                        ep.episode_number === Number(episodeNumber) &&
+                        ep.season_number === selectedSeason,
+                    )?.overview || "No description available."}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Season dropdown + episodes */}
+          <div style={{ marginTop: 12 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 14,
+                marginBottom: 16,
+                flexWrap: "wrap",
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: "1rem",
+                  fontWeight: 700,
+                  color: "#fff",
+                  margin: 0,
+                }}
+              >
+                Episodes
+              </h2>
+              {/* Season dropdown */}
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "7px 14px",
+                    background: "var(--clr-surface2)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 8,
+                    color: "#e8e8f0",
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  Season {selectedSeason}
+                  <MdExpandMore
+                    size={17}
+                    style={{
+                      transform: isDropdownOpen ? "rotate(180deg)" : "none",
+                      transition: "0.2s",
+                    }}
+                  />
+                </button>
+                {isDropdownOpen && (
+                  <div
+                    className="scrollbar"
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 5px)",
+                      left: 0,
+                      minWidth: "100%",
+                      maxHeight: 200,
+                      overflowY: "auto",
+                      background: "rgba(18,18,26,0.99)",
+                      backdropFilter: "blur(16px)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      borderRadius: 10,
+                      boxShadow: "0 12px 32px rgba(0,0,0,0.5)",
+                      zIndex: 50,
+                    }}
+                  >
+                    {seasonKeys.map((season) => (
+                      <button
+                        key={season}
+                        onClick={() => {
+                          setSelectedSeason(season);
+                          setIsDropdownOpen(false);
+                        }}
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          padding: "9px 16px",
+                          textAlign: "left",
+                          background:
+                            season === selectedSeason
+                              ? "rgba(245,197,24,0.1)"
+                              : "transparent",
+                          color:
+                            season === selectedSeason ? "#f5c518" : "#e8e8f0",
+                          fontSize: "0.85rem",
+                          cursor: "pointer",
+                          border: "none",
+                          fontWeight: season === selectedSeason ? 700 : 400,
+                          borderBottom: "1px solid rgba(255,255,255,0.04)",
+                        }}
+                      >
+                        Season {season}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <span style={{ color: "#8888a8", fontSize: "0.78rem" }}>
+                {episodes.length} episodes
+              </span>
+            </div>
+
+            {/* Episode grid */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+                gap: 12,
+              }}
+            >
+              {currentEpisodes.map((episode) => (
+                <Link
+                  key={episode.episode_number}
+                  href={`/tv/${tvshow.id}/${tvshow.name.replace("%", "-")}/season/${selectedSeason}/episode/${episode.episode_number}`}
+                  style={{ textDecoration: "none" }}
+                >
+                  <div
+                    style={{
+                      borderRadius: 10,
+                      overflow: "hidden",
+                      background: "var(--clr-surface)",
+                      border:
+                        episode.episode_number === Number(episodeNumber) &&
+                        selectedSeason === Number(seasonNumber)
+                          ? "2px solid #f5c518"
+                          : "1px solid rgba(255,255,255,0.06)",
+                      boxShadow: "var(--shadow-card)",
+                      transition: "all 0.25s",
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.transform =
+                        "translateY(-4px)";
+                      (e.currentTarget as HTMLDivElement).style.boxShadow =
+                        "0 10px 30px rgba(0,0,0,0.7)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.transform =
+                        "translateY(0)";
+                      (e.currentTarget as HTMLDivElement).style.boxShadow =
+                        "var(--shadow-card)";
+                    }}
+                  >
+                    {/* Thumb */}
+                    <div
+                      style={{
+                        position: "relative",
+                        width: "100%",
+                        aspectRatio: "16/9",
+                        background: "var(--clr-surface2)",
+                      }}
+                    >
+                      {!episodeImageLoading[episode.episode_number] && (
+                        <div
+                          className="skeleton"
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            borderRadius: 0,
+                          }}
+                        />
+                      )}
+                      <img
+                        src={
+                          episode.still_path
+                            ? `https://image.tmdb.org/t/p/w300${episode.still_path}`
+                            : `https://image.tmdb.org/t/p/w342${tvshow.poster_path}`
+                        }
+                        alt={episode.name}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          opacity: episodeImageLoading[episode.episode_number]
+                            ? 1
+                            : 0,
+                          transition: "opacity 0.3s",
+                          display: "block",
+                        }}
+                        onLoad={() =>
+                          setEpisodeImageLoading((p) => ({
+                            ...p,
+                            [episode.episode_number]: true,
+                          }))
+                        }
+                      />
+                      <span
+                        style={{
+                          position: "absolute",
+                          bottom: 4,
+                          left: 4,
+                          background: "rgba(245,197,24,0.9)",
+                          color: "#0a0a0f",
+                          fontSize: "0.63rem",
+                          fontWeight: 800,
+                          padding: "2px 6px",
+                          borderRadius: 4,
+                        }}
+                      >
+                        E{episode.episode_number}
+                      </span>
+                    </div>
+                    <div style={{ padding: "7px 9px" }}>
+                      <p
+                        style={{
+                          fontSize: "0.77rem",
+                          fontWeight: 600,
+                          color: "#e8e8f0",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {episode.name}
+                      </p>
+                      <p
+                        style={{
+                          fontSize: "0.67rem",
+                          color: "#8888a8",
+                          marginTop: 2,
+                        }}
+                      >
+                        S{selectedSeason} E{episode.episode_number}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: 12,
+                  marginTop: 20,
+                }}
+              >
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                  disabled={currentPage === 1}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    padding: "8px 18px",
+                    borderRadius: 8,
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    background:
+                      currentPage === 1
+                        ? "rgba(255,255,255,0.03)"
+                        : "var(--clr-surface2)",
+                    color: currentPage === 1 ? "#8888a8" : "#e8e8f0",
+                    cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                    fontSize: "0.83rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  <MdChevronLeft size={16} /> Prev
+                </button>
+                <span style={{ color: "#8888a8", fontSize: "0.8rem" }}>
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(p + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    padding: "8px 18px",
+                    borderRadius: 8,
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    background:
+                      currentPage === totalPages
+                        ? "rgba(255,255,255,0.03)"
+                        : "var(--clr-surface2)",
+                    color: currentPage === totalPages ? "#8888a8" : "#e8e8f0",
+                    cursor:
+                      currentPage === totalPages ? "not-allowed" : "pointer",
+                    fontSize: "0.83rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  Next <MdChevronRight size={16} />
+                </button>
               </div>
             )}
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-            {currentEpisodes.map((episode) => (
-              <Link
-                key={episode.episode_number}
-                href={`/tv/${tvshow.id}/${tvshow.name.replace(
-                  "%",
-                  "-"
-                )}/season/${selectedSeason}/episode/${episode.episode_number}`}
-                className={`bg-gray-900 rounded-lg cursor-pointer transition-transform transform hover:scale-105 hover:bg-yellow-700 overflow-hidden shadow ${
-                  episode.episode_number === Number(episodeNumber) &&
-                  selectedSeason === Number(seasonNumber)
-                    ? "border-2 border-yellow-400"
-                    : ""
-                }`}
+          {/* Recommended */}
+          {recommendedTvshows.length > 0 && (
+            <div style={{ marginTop: 20 }}>
+              <div className="divider" />
+              <h2
+                className="section-heading"
+                style={{
+                  fontSize: "1.05rem",
+                  fontWeight: 700,
+                  color: "#fff",
+                  marginBottom: 16,
+                }}
               >
-                <div className="relative w-full">
-                  {!episodeImageLoading[episode.episode_number] && (
-                    <div className="animate-pulse bg-gray-300 w-full h-20 sm:h-24 md:h-28 absolute inset-0" />
-                  )}
-                  <img
-                    src={
-                      episode.still_path
-                        ? `https://image.tmdb.org/t/p/w300${episode.still_path}`
-                        : `https://image.tmdb.org/t/p/w500${tvshow.poster_path}`
-                    }
-                    alt={episode.name}
-                    className={`w-full h-20 sm:h-24 md:h-28 object-cover ${
-                      !episodeImageLoading[episode.episode_number]
-                        ? "invisible"
-                        : ""
-                    }`}
-                    onLoad={() =>
-                      setEpisodeImageLoading((prev) => ({
-                        ...prev,
-                        [episode.episode_number]: true,
-                      }))
-                    }
+                Recommended Shows
+              </h2>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
+                  gap: 12,
+                }}
+              >
+                {recommendedTvshows.map((show) => (
+                  <MovieCard
+                    key={show.id}
+                    movie={{ ...show, media_type: "tv" }}
                   />
-                </div>
-                <div className="p-1">
-                  <div
-                    className="font-semibold text-white text-xs sm:text-sm truncate"
-                    title={episode.name}
-                  >
-                    {episode.name}
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    S{selectedSeason} E{episode.episode_number}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          <div className="flex justify-center gap-4 mt-4">
-            <button
-              onClick={handlePrev}
-              disabled={currentPage === 1}
-              className={`px-4 py-2 rounded ${
-                currentPage === 1
-                  ? "bg-gray-600 cursor-not-allowed"
-                  : "bg-yellow-400 cursor-pointer text-gray-800"
-              }`}
-            >
-              Prev
-            </button>
-            <button
-              onClick={handleNext}
-              disabled={currentPage === totalPages || totalPages === 0}
-              className={`px-4 py-2 rounded ${
-                currentPage === totalPages || totalPages === 0
-                  ? "bg-gray-600 cursor-not-allowed"
-                  : "bg-yellow-400 cursor-pointer text-gray-800"
-              }`}
-            >
-              Next
-            </button>
-          </div>
-
-          <div className="text-center mt-2 text-sm text-gray-400">
-            Page {currentPage} of {totalPages || 1}
-          </div>
-        </div>
-        {/* RECOMMENDED TV SHOWS */}
-        <div className="mt-8 h-fit gap-4">
-          <h1 className="text-lg sm:text-xl font-bold text-yellow-400 mb-4">
-            Recommended TV Shows
-          </h1>
-          <div className="grid lg:grid-cols-8 md:grid-cols-5 sm:grid-cols-4 grid-cols-3 gap-3">
-            {recommendedTvshows &&
-              recommendedTvshows.length > 0 &&
-              recommendedTvshows.map((show) => (
-                <div className="overflow-hidden" key={show.id}>
-                  <MovieCard movie={show} key={show.id} />
-                </div>
-              ))}
-          </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

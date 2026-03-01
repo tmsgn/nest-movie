@@ -1,137 +1,122 @@
-import axios from 'axios';
-
 const API_KEY = "b6a27c41bfadea6397dcd72c3877cac1";
+const BASE = "https://api.themoviedb.org/3";
+
+// Generic cached fetch — 1 hour revalidation
+async function tmdbFetch(path: string) {
+  const res = await fetch(`${BASE}${path}?api_key=${API_KEY}`, {
+    next: { revalidate: 3600 },
+  });
+  if (!res.ok) throw new Error(`TMDB ${path} failed (${res.status})`);
+  return res.json();
+}
 
 type Genre = { id: number; name: string };
 
-type Movie = {
-  first_air_date: any;
-  name: any;
-  backdrop_path: null;
+export type Movie = {
   id: number;
   title: string;
   poster_path: string | null;
+  backdrop_path: string | null;
   release_date: string;
+  first_air_date: string;
   vote_average: number;
   genre_ids: number[];
   genres: string[];
   media_type: string;
+  name: string;
 };
 
-type TVShow = Movie & { media_type: "tv" };
-
-type ApiResponseItem = {
-  backdrop_path: null;
-  id: number;
-  title?: string;
-  name?: string;
-  poster_path: string | null;
-  release_date?: string;
-  first_air_date?: string;
-  vote_average: number;
-  genre_ids: number[];
-  media_type?: string;
-};
-
-type GenresResponse = { genres: Genre[] };
-type MoviesResponse = { results: ApiResponseItem[] };
+export type TVShow = Movie & { media_type: "tv" };
 
 export async function getTrendingMovies(): Promise<Movie[] | null> {
   try {
-    const [moviesRes, genresRes] = await Promise.all([
-      axios.get<MoviesResponse>(`https://api.themoviedb.org/3/trending/movie/week?api_key=${API_KEY}`),
-      axios.get<GenresResponse>(`https://api.themoviedb.org/3/genre/movie/list?api_key=${API_KEY}`)
+    const [{ results }, { genres }] = await Promise.all([
+      tmdbFetch("/trending/movie/week"),
+      tmdbFetch("/genre/movie/list"),
     ]);
-    const moviesData = moviesRes.data;
-    const genresData = genresRes.data;
-    return moviesData.results.map(movie => ({
-      id: movie.id,
-      title: movie.title ?? "Unknown Title",
-      poster_path: movie.poster_path,
-      release_date: movie.release_date ?? "Unknown",
-      vote_average: movie.vote_average,
-      genre_ids: movie.genre_ids,
-      genres: movie.genre_ids.map(id => genresData.genres.find(g => g.id === id)?.name).filter(Boolean) as string[],
+    return results.map((m: any) => ({
+      id: m.id,
+      title: m.title ?? "Unknown",
+      poster_path: m.poster_path ?? null,
+      backdrop_path: m.backdrop_path ?? null,
+      release_date: m.release_date ?? "",
+      first_air_date: m.release_date ?? "",
+      vote_average: m.vote_average,
+      genre_ids: m.genre_ids ?? [],
+      genres: (m.genre_ids ?? [])
+        .map((id: number) => (genres as Genre[]).find((g) => g.id === id)?.name)
+        .filter(Boolean),
       media_type: "movie",
-      first_air_date: movie.release_date ?? "Unknown",
-      name: movie.title ?? "Unknown Name",
-      backdrop_path: movie.backdrop_path ?? null
+      name: m.title ?? "Unknown",
     }));
-  } catch (error) {
-    console.error(error);
+  } catch {
     return null;
   }
 }
 
 export async function getTrendingTVShows(): Promise<TVShow[] | null> {
   try {
-    const [tvRes, genresRes] = await Promise.all([
-      axios.get<MoviesResponse>(`https://api.themoviedb.org/3/trending/tv/week?api_key=${API_KEY}`),
-      axios.get<GenresResponse>(`https://api.themoviedb.org/3/genre/tv/list?api_key=${API_KEY}`)
+    const [{ results }, { genres }] = await Promise.all([
+      tmdbFetch("/trending/tv/week"),
+      tmdbFetch("/genre/tv/list"),
     ]);
-    const tvData = tvRes.data;
-    const genresData = genresRes.data;
-    return tvData.results.map(tv => ({
-      id: tv.id,
-      title: tv.name ?? "Unknown Title",
-      poster_path: tv.poster_path,
-      release_date: tv.first_air_date ?? "Unknown",
-      vote_average: tv.vote_average,
-      genre_ids: tv.genre_ids,
-      genres: tv.genre_ids.map(id => genresData.genres.find(g => g.id === id)?.name).filter(Boolean) as string[],
+    return results.map((t: any) => ({
+      id: t.id,
+      title: t.name ?? "Unknown",
+      poster_path: t.poster_path ?? null,
+      backdrop_path: t.backdrop_path ?? null,
+      release_date: t.first_air_date ?? "",
+      first_air_date: t.first_air_date ?? "",
+      vote_average: t.vote_average,
+      genre_ids: t.genre_ids ?? [],
+      genres: (t.genre_ids ?? [])
+        .map((id: number) => (genres as Genre[]).find((g) => g.id === id)?.name)
+        .filter(Boolean),
       media_type: "tv",
-      first_air_date: tv.first_air_date ?? "Unknown",
-      name: tv.name ?? "Unknown Name",
-      backdrop_path: tv.backdrop_path ?? null
+      name: t.name ?? "Unknown",
     }));
-  } catch (error) {
-    console.error(error);
+  } catch {
     return null;
   }
 }
 
-export async function searchMovies(query: string): Promise<ApiResponseItem[]> {
+export async function searchMovies(query: string) {
   try {
-    const res = await axios.get(`https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(query)}`);
-    return res.data.results.map((item: ApiResponseItem) => ({
-      id: item.id,
-      title: item.title ?? item.name ?? "Unknown Title",
-      poster_path: item.poster_path,
-      release_date: item.release_date ?? item.first_air_date ?? "Unknown",
-      media_type: item.media_type ?? "movie"
-    }));
-  } catch (error) {
-    console.error(error);
+    // searchMovies is called client-side from Navbar, no cache needed
+    const res = await fetch(
+      `${BASE}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(query)}`,
+    );
+    const data = await res.json();
+    return data.results ?? [];
+  } catch {
     return [];
   }
 }
 
 export async function getTvshowDetail(id: number) {
   try {
-    const res = await axios.get(`https://api.themoviedb.org/3/tv/${id}?api_key=${API_KEY}`);
-    return res.data;
-  } catch (error) {
-    console.error(error);
+    return await tmdbFetch(`/tv/${id}`);
+  } catch {
     return null;
   }
 }
 
-export async function getTvshowEpisodes(tvshowId: number, seasonNumber: number) {
+export async function getTvshowEpisodes(
+  tvshowId: number,
+  seasonNumber: number,
+) {
   try {
-    const res = await axios.get(`https://api.themoviedb.org/3/tv/${tvshowId}/season/${seasonNumber}?api_key=${API_KEY}&language=en-US`);
-    return res.data;
-  } catch (error) {
-    console.error(error);
+    return await tmdbFetch(`/tv/${tvshowId}/season/${seasonNumber}`);
+  } catch {
     return null;
   }
 }
 
 export async function RecommendedTvshows(tvshowId: number) {
   try {
-    const res = await axios.get(`https://api.themoviedb.org/3/tv/${tvshowId}/recommendations?api_key=${API_KEY}`);
-    return res.data.results;
-  } catch (error) {
-    console.error(error);
-    return null;
+    const data = await tmdbFetch(`/tv/${tvshowId}/recommendations`);
+    return data.results ?? [];
+  } catch {
+    return [];
   }
 }

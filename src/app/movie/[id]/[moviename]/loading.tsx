@@ -1,24 +1,119 @@
 export default function Loading() {
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white">
-      <div className="max-w-4xl w-full p-4 animate-pulse">
-        <div className="h-8 bg-gray-700 rounded mb-4 w-2/3 mx-auto"></div>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "var(--clr-bg)",
+        paddingTop: 68,
+      }}
+    >
+      {/* Hero skeleton */}
+      <div
+        className="skeleton"
+        style={{
+          width: "100%",
+          height: "clamp(200px,42vh,480px)",
+          borderRadius: 0,
+        }}
+      />
 
-        <div className="text-center mb-6 space-y-2">
-          <div className="h-4 bg-gray-600 rounded w-1/4 mx-auto"></div>
-          <div className="h-4 bg-gray-600 rounded w-1/6 mx-auto"></div>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 16px 60px" }}>
+        {/* Title card */}
+        <div
+          style={{
+            display: "flex",
+            gap: 24,
+            marginTop: -110,
+            position: "relative",
+            zIndex: 10,
+            alignItems: "flex-end",
+            flexWrap: "wrap",
+          }}
+        >
+          <div
+            className="skeleton"
+            style={{ width: 160, height: 240, borderRadius: 12, flexShrink: 0 }}
+          />
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+              paddingBottom: 8,
+            }}
+          >
+            <div
+              className="skeleton"
+              style={{ width: "45%", height: 16, borderRadius: 6 }}
+            />
+            <div
+              className="skeleton"
+              style={{ width: "75%", height: 36, borderRadius: 8 }}
+            />
+            <div style={{ display: "flex", gap: 8 }}>
+              {[80, 60, 50, 40].map((w, i) => (
+                <div
+                  key={i}
+                  className="skeleton"
+                  style={{ width: w, height: 26, borderRadius: 8 }}
+                />
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 6 }}>
+              {[70, 80, 65].map((w, i) => (
+                <div
+                  key={i}
+                  className="skeleton"
+                  style={{ width: w, height: 22, borderRadius: 99 }}
+                />
+              ))}
+            </div>
+          </div>
         </div>
 
-        <div className="relative pb-[56.25%] h-0 overflow-hidden mb-8">
-          <div className="absolute top-0 left-0 w-full h-full bg-gray-700 rounded-lg"></div>
+        {/* Overview */}
+        <div
+          style={{
+            marginTop: 24,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
+          <div
+            className="skeleton"
+            style={{ width: 100, height: 16, borderRadius: 6 }}
+          />
+          <div
+            className="skeleton"
+            style={{ width: "100%", height: 12, borderRadius: 6 }}
+          />
+          <div
+            className="skeleton"
+            style={{ width: "92%", height: 12, borderRadius: 6 }}
+          />
+          <div
+            className="skeleton"
+            style={{ width: "80%", height: 12, borderRadius: 6 }}
+          />
         </div>
 
-        <div className="bg-gray-800 p-4 rounded-lg shadow-lg space-y-2">
-          <div className="h-5 bg-gray-600 rounded w-1/4"></div>
-          <div className="h-4 bg-gray-700 rounded w-full"></div>
-          <div className="h-4 bg-gray-700 rounded w-5/6"></div>
-          <div className="h-4 bg-gray-700 rounded w-3/4"></div>
-          <div className="h-4 bg-gray-700 rounded w-2/3"></div>
+        {/* Player skeleton */}
+        <div style={{ marginTop: 28 }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+            {[90, 90, 90, 80].map((w, i) => (
+              <div
+                key={i}
+                className="skeleton"
+                style={{ width: w, height: 34, borderRadius: 8 }}
+              />
+            ))}
+          </div>
+          <div
+            className="skeleton"
+            style={{ width: "100%", paddingTop: "56.25%", borderRadius: 14 }}
+          />
         </div>
       </div>
     </div>

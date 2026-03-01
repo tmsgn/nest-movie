@@ -1,7 +1,7 @@
 "use client";
 import { saveToLocalStorage, loadFromLocalStorage } from "@/lib/savedata";
 import React, { useState, useEffect } from "react";
-import { FaRegBookmark, FaBookmark } from "react-icons/fa";
+import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 
 interface Movie {
   id: number;
@@ -24,34 +24,42 @@ const AddToFavBtn = ({ movie }: { movie: Movie }) => {
     setIsFavorite(favMovies.some((m) => m.id === movie.id));
   }, [movie.id]);
 
-  const toggleFavorite = () => {
+  const toggleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     let favMovies = loadFromLocalStorage<Movie[]>("movie") || [];
-
     if (isFavorite) {
       favMovies = favMovies.filter((m) => m.id !== movie.id);
     } else {
       favMovies.push(movie);
     }
-
     saveToLocalStorage("movie", favMovies);
     setIsFavorite(!isFavorite);
   };
 
   return (
     <button
-      onClick={(e) => {
-        e.preventDefault();
-        toggleFavorite();
+      onClick={toggleFavorite}
+      aria-label={isFavorite ? "Remove from watchlist" : "Add to watchlist"}
+      title={isFavorite ? "Remove from watchlist" : "Add to watchlist"}
+      style={{
+        background: isFavorite ? "rgba(245,197,24,0.2)" : "rgba(10,10,20,0.7)",
+        backdropFilter: "blur(8px)",
+        border: `1px solid ${isFavorite ? "rgba(245,197,24,0.5)" : "rgba(255,255,255,0.2)"}`,
+        borderRadius: 8,
+        padding: "5px 6px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        transition: "all 0.2s",
+        outline: "none",
       }}
-      className="absolute top-2 right-2 z-10 bg-transparent border-none p-0 m-0 flex items-center justify-center transition-transform hover:scale-110"
-      aria-label={isFavorite ? "Remove from saved" : "Save"}
-      title={isFavorite ? "Remove from saved" : "Save"}
-      style={{ background: "none", border: "none" }}
     >
       {isFavorite ? (
-        <FaBookmark className="text-yellow-400 text-2xl drop-shadow" />
+        <FaBookmark size={13} color="#f5c518" />
       ) : (
-        <FaRegBookmark className="text-white text-2xl hover:text-yellow-400 drop-shadow" />
+        <FaRegBookmark size={13} color="rgba(255,255,255,0.85)" />
       )}
     </button>
   );

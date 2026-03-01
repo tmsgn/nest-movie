@@ -1,122 +1,98 @@
-import axios from "axios";
 import TVPageContent from "./TVPageContent";
 
-type CastMember = {
-  name: string;
-  character: string;
-  profile_path: string;
-};
-
-type Episode = {
-  season_number: number;
-  episode_number: number;
-  name: string;
-  overview: string;
-  still_path: string;
-};
-
 const API_KEY = "b6a27c41bfadea6397dcd72c3877cac1";
+const BASE = "https://api.themoviedb.org/3";
 
-const fetchJson = async (url: string) => {
-  const response = await axios.get(url);
-  return response.data;
-};
+async function tmdbFetch(path: string) {
+  const res = await fetch(`${BASE}${path}?api_key=${API_KEY}`, {
+    next: { revalidate: 3600 },
+  });
+  if (!res.ok) throw new Error(`TMDB ${path} failed`);
+  return res.json();
+}
 
-const getTvshowCast = async (tvshowId: number): Promise<CastMember[]> => {
+type CastMember = { name: string; character: string; profile_path: string };
+
+async function getTvshowCast(id: number): Promise<CastMember[]> {
   try {
-    const data = await fetchJson(
-      `https://api.themoviedb.org/3/tv/${tvshowId}/credits?api_key=${API_KEY}`
-    );
-    return data.cast.map((member: any) => ({
-      name: member.name,
-      character: member.character,
-      profile_path: member.profile_path,
+    const data = await tmdbFetch(`/tv/${id}/credits`);
+    return (data.cast || []).slice(0, 10).map((m: any) => ({
+      name: m.name,
+      character: m.character,
+      profile_path: m.profile_path,
     }));
-  } catch (err) {
-    console.error("Error fetching cast:", err);
+  } catch {
     return [];
   }
-};
-
-const getEpisodesBySeason = async (
-  tvshowId: number,
-  seasons: { id: number; season_number: number }[]
-): Promise<{ [seasonNumber: number]: Episode[] }> => {
-  const episodesBySeason: { [seasonNumber: number]: Episode[] } = {};
-
-  await Promise.all(
-    seasons.map(async (season) => {
-      if (season.season_number === 0) return;
-      try {
-        const data = await fetchJson(
-          `https://api.themoviedb.org/3/tv/${tvshowId}/season/${season.season_number}?api_key=${API_KEY}`
-        );
-        episodesBySeason[season.season_number] = data.episodes.map(
-          (episode: any) => ({
-            season_number: episode.season_number,
-            episode_number: episode.episode_number,
-            name: episode.name,
-            overview: episode.overview,
-            still_path: episode.still_path,
-          })
-        );
-      } catch (err) {
-        console.error(`Error fetching season ${season.season_number}:`, err);
-        episodesBySeason[season.season_number] = [];
-      }
-    })
-  );
-
-  return episodesBySeason;
-};
+}
 
 export default async function TVpage({
   params,
 }: {
   params: Promise<{ tvname: string; id: string }>;
 }) {
-  const resolvedParams = await params;
-  const tvshowId = resolvedParams.id;
+  const { id } = await params;
 
   try {
-    const [tvshowDetail, cast, videoData] = await Promise.all([
-      fetchJson(
-        `https://api.themoviedb.org/3/tv/${tvshowId}?api_key=${API_KEY}`
-      ),
-      getTvshowCast(parseInt(tvshowId)),
-      fetchJson(
-        `https://api.themoviedb.org/3/tv/${tvshowId}/videos?api_key=${API_KEY}`
-      ),
+    // Only fetch season 1 episodes at server time — other seasons load client-side
+    const [tvshowDetail, cast, videoData, season1] = await Promise.all([
+      tmdbFetch(`/tv/${id}`),
+      getTvshowCast(parseInt(id)),
+      tmdbFetch(`/tv/${id}/videos`),
+      tmdbFetch(`/tv/${id}/season/1`),
     ]);
 
-    const genres =
-      tvshowDetail.genres?.map((g: { id: number; name: string }) => ({
-        id: g.id,
-        name: g.name,
-      })) || [];
-    const seasons = tvshowDetail.seasons || [];
-    const episodesBySeason = await getEpisodesBySeason(
-      parseInt(tvshowId),
-      seasons
+    const trailer = (videoData.results || []).find(
+      (v: any) => v.type === "Trailer" && v.site === "YouTube",
     );
 
-    const trailer = videoData.results?.find(
-      (video: any) => video.type === "Trailer" && video.site === "YouTube"
-    );
+    // Only season 1 is pre-loaded; other seasons are fetched by client on demand
+    const episodesBySeason: { [sn: number]: any[] } = {
+      1: (season1.episodes || []).map((e: any) => ({
+        season_number: e.season_number,
+        episode_number: e.episode_number,
+        name: e.name,
+        overview: e.overview,
+        still_path: e.still_path,
+      })),
+    };
 
     return (
       <TVPageContent
-        tvshow={{ ...tvshowDetail, genres, seasons }}
+        tvshow={tvshowDetail}
         tvshowDetail={tvshowDetail}
         episodesBySeason={episodesBySeason}
         cast={cast}
         trailer={trailer}
       />
     );
-  } catch (err) {
-    console.error("Error fetching TV show data:", err);
+  } catch {
     return (
-      <div className="p-4 text-center">Error: Failed to load TV show data.</div>
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "var(--clr-bg)",
+          color: "#8888a8",
+          flexDirection: "column",
+          gap: 12,
+          paddingTop: 80,
+        }}
+      >
+        <p style={{ fontSize: "1.1rem" }}>Failed to load TV show data.</p>
+        <a
+          href="/"
+          style={{
+            color: "#f5c518",
+            textDecoration: "underline",
+            fontSize: "0.9rem",
+          }}
+        >
+          ← Back to Home
+        </a>
+      </div>
     );
   }
 }

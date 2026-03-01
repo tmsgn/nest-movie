@@ -1,8 +1,10 @@
-'use client'
+"use client";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import AddToFavBtn from "./AddToFavBtn";
+import { MdStar, MdLocalMovies, MdTv } from "react-icons/md";
+import { FaPlay } from "react-icons/fa";
 
 interface Movie {
   id: number;
@@ -21,87 +23,238 @@ export default function MovieCard({ movie }: { movie: Movie }) {
   const itemTitle = movie.title || movie.name || "";
   const releaseDate = movie.release_date || movie.first_air_date;
   const releaseYear = releaseDate ? new Date(releaseDate).getFullYear() : null;
-  const [loading, setLoading]= useState(false)
+  const [loaded, setLoaded] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   const slug = itemTitle
     ? encodeURIComponent(
         itemTitle
           .toLowerCase()
           .replace(/\s+/g, "-")
-          .replace(/[^\w-]+/g, "")
+          .replace(/[^\w-]+/g, ""),
       )
     : "detail";
 
   const href =
     movie.media_type === "tv"
       ? `/tv/${movie.id}/${slug}`
-      : movie.media_type === "movie"
-      ? `/movie/${movie.id}/${slug}`
       : `/movie/${movie.id}/${slug}`;
 
-  
+  const firstGenre =
+    movie.genres?.[0] ||
+    (movie.genre_ids?.[0] ? `Genre ${movie.genre_ids[0]}` : null);
 
-  const firstGenreDisplay = movie.genres?.[0] || (movie.genre_ids?.[0] ? `Genre ${movie.genre_ids[0]}` : null);
+  const isTV = movie.media_type === "tv";
 
   return (
-    <Link href={href} className="group block h-full">
-      <div className="cursor-pointer rounded-lg p-1 group transition-transform transform hover:scale-105 relative h-full flex flex-col">
-      <div className="relative flex-shrink-0">
-        {!loading && (
-        <div className="animate-pulse bg-gray-300 rounded-lg w-full" style={{ aspectRatio: '500/700', minHeight: 200 }} />
-        )}
-        <Image
-        src={
-          movie.poster_path
-          ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-          : "/fallback.jpg"
-        }
-        alt={`${itemTitle} Poster`}
-        onLoad={() => setLoading(true)}
-        width={500}
-        height={700}
-        className={`object-cover group-hover:opacity-60 rounded-lg w-full h-auto ${!loading ? 'hidden' : ''}`}
-        priority
-        />
-      </div>
-      <div className="mt-2 flex-grow flex flex-col justify-between">
-        {!loading ? (
-        <div className="space-y-2">
-          <div className="h-3 w-12 bg-gray-300 rounded animate-pulse" />
-          <div className="h-4 w-3/4 bg-gray-300 rounded animate-pulse" />
-          <div className="flex gap-2">
-          <div className="h-3 w-16 bg-gray-300 rounded animate-pulse" />
-          <div className="h-3 w-8 bg-gray-300 rounded animate-pulse" />
+    <Link href={href} style={{ display: "block", textDecoration: "none" }}>
+      <div
+        style={{
+          borderRadius: 10,
+          overflow: "hidden",
+          background: "var(--clr-surface)",
+          boxShadow: hovered
+            ? "0 14px 40px rgba(0,0,0,0.75), 0 0 20px rgba(245,197,24,0.15)"
+            : "0 4px 18px rgba(0,0,0,0.5)",
+          transform: hovered
+            ? "translateY(-5px) scale(1.03)"
+            : "translateY(0) scale(1)",
+          transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
+          cursor: "pointer",
+          position: "relative",
+        }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        {/* Poster */}
+        <div
+          style={{
+            position: "relative",
+            aspectRatio: "2/3",
+            background: "var(--clr-surface2)",
+          }}
+        >
+          {!loaded && (
+            <div
+              className="skeleton"
+              style={{ position: "absolute", inset: 0, borderRadius: 0 }}
+            />
+          )}
+          <Image
+            src={
+              movie.poster_path
+                ? `https://image.tmdb.org/t/p/w400${movie.poster_path}`
+                : "/fallback.jpg"
+            }
+            alt={`${itemTitle} Poster`}
+            onLoad={() => setLoaded(true)}
+            fill
+            sizes="(max-width: 640px) 33vw, (max-width: 1024px) 20vw, 12vw"
+            style={{
+              objectFit: "cover",
+              opacity: loaded ? 1 : 0,
+              transition: "opacity 0.4s",
+            }}
+            priority
+          />
+
+          {/* Hover overlay */}
+          {hovered && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.35) 50%, transparent 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: "50%",
+                  background: "rgba(245,197,24,0.95)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 0 20px rgba(245,197,24,0.6)",
+                }}
+              >
+                <FaPlay size={15} color="#0a0a0f" style={{ marginLeft: 2 }} />
+              </div>
+            </div>
+          )}
+
+          {/* Favorite button */}
+          <div
+            style={{ position: "absolute", top: 6, right: 6, zIndex: 10 }}
+            onClick={(e) => e.preventDefault()}
+          >
+            <AddToFavBtn movie={movie} />
+          </div>
+
+          {/* Media type badge */}
+          <div
+            style={{
+              position: "absolute",
+              top: 6,
+              left: 6,
+              background: isTV
+                ? "rgba(96,165,250,0.25)"
+                : "rgba(245,197,24,0.25)",
+              border: `1px solid ${isTV ? "rgba(96,165,250,0.4)" : "rgba(245,197,24,0.4)"}`,
+              borderRadius: 6,
+              padding: "2px 6px",
+              display: "flex",
+              alignItems: "center",
+              gap: 3,
+            }}
+          >
+            {isTV ? (
+              <MdTv size={10} color="#60a5fa" />
+            ) : (
+              <MdLocalMovies size={10} color="#f5c518" />
+            )}
+            <span
+              style={{
+                fontSize: "0.6rem",
+                fontWeight: 700,
+                letterSpacing: "0.05em",
+                color: isTV ? "#60a5fa" : "#f5c518",
+              }}
+            >
+              {isTV ? "TV" : "FILM"}
+            </span>
           </div>
         </div>
-        ) : (
-        <>
-          {releaseYear && (
-          <h1 className="text-xs flex justify-between md:text-sm font-medium text-gray-400 ">
-            {releaseYear}
-            <AddToFavBtn movie={movie} />
-          </h1>
+
+        {/* Info area */}
+        <div style={{ padding: "8px 10px 10px" }}>
+          {!loaded ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div
+                className="skeleton"
+                style={{ height: 11, width: "40%", borderRadius: 4 }}
+              />
+              <div
+                className="skeleton"
+                style={{ height: 13, width: "90%", borderRadius: 4 }}
+              />
+              <div
+                className="skeleton"
+                style={{ height: 10, width: "60%", borderRadius: 4 }}
+              />
+            </div>
+          ) : (
+            <>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 3,
+                }}
+              >
+                {releaseYear && (
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      color: "#8888a8",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {releaseYear}
+                  </span>
+                )}
+                {movie.vote_average > 0 && (
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 2,
+                      fontSize: "0.72rem",
+                      fontWeight: 700,
+                      color: "#f5c518",
+                    }}
+                  >
+                    <MdStar size={12} />
+                    {movie.vote_average.toFixed(1)}
+                  </span>
+                )}
+              </div>
+              <p
+                style={{
+                  fontWeight: 600,
+                  fontSize: "0.82rem",
+                  color: "#e8e8f0",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  marginBottom: 3,
+                  lineHeight: 1.3,
+                }}
+              >
+                {itemTitle}
+              </p>
+              {firstGenre && (
+                <p
+                  style={{
+                    fontSize: "0.7rem",
+                    color: "#8888a8",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {firstGenre}
+                </p>
+              )}
+            </>
           )}
-          <div className="flex flex-col gap-1">
-          <h1 className="font-semibold truncate text-xs md:text-base">
-            {itemTitle}
-          </h1>
-          <div className="flex justify-between items-center md:flex-nowrap flex-wrap gap-1">
-            {firstGenreDisplay && (
-            <h1 className="md:text-sm w-full text-gray-500 break-words text-xs font-medium truncate flex-shrink overflow-hidden">
-              {firstGenreDisplay}
-            </h1>
-            )}
-            {movie.vote_average > 0 && (
-            <h1 className="text-xs flex-shrink-0">
-              {movie.vote_average.toFixed(1)}⭐
-            </h1>
-            )}
-          </div>
-          </div>
-        </>
-        )}
-      </div>
+        </div>
       </div>
     </Link>
   );

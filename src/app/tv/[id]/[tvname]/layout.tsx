@@ -1,23 +1,18 @@
 import type { Metadata } from "next";
 
-export function generateMetadata(
-  { params }: any
-): Metadata {
-  const title = decodeURIComponent(params.tvname);
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ tvname: string }>;
+}): Promise<Metadata> {
+  const { tvname } = await params;
+  const title = decodeURIComponent(tvname).replace(/-/g, " ");
   return {
-    title: `${title.charAt(0).toUpperCase()}${title.slice(1)}`,
-    description: `Watch ${title.charAt(0).toUpperCase()}${title.slice(1)} on MovieNest`,
+    title: `${title.charAt(0).toUpperCase()}${title.slice(1)} – NestMovie`,
+    description: `Watch ${title} on NestMovie`,
   };
 }
 
-export default function TVlayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="p-4 w-screen overflow-x-hidden">
-      {children}
-    </div>
-  );
+export default function TVlayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }
