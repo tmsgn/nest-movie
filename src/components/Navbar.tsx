@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { searchMovies } from "@/lib/fetchMovies";
 import { useRouter } from "next/navigation";
 import { FiSearch, FiX, FiMenu, FiHeart, FiHome } from "react-icons/fi";
-import { MdLocalMovies } from "react-icons/md";
+import { MdLocalMovies, MdTv } from "react-icons/md";
 
 type SearchResult = {
   id: number;
@@ -80,6 +80,8 @@ export default function NavBar() {
 
   const navLinks = [
     { href: "/", label: "Home", icon: <FiHome size={15} /> },
+    { href: "/movies", label: "Movies", icon: <MdLocalMovies size={15} /> },
+    { href: "/shows", label: "TV Shows", icon: <MdTv size={15} /> },
     { href: "/favorites", label: "Watchlist", icon: <FiHeart size={15} /> },
   ];
 

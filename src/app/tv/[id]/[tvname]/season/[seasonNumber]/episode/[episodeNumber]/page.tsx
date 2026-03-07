@@ -39,8 +39,7 @@ type Episode = {
   season_number: number;
 };
 
-const TV_GENRE_API =
-  "https://api.themoviedb.org/3/genre/tv/list?api_key=b6a27c41bfadea6397dcd72c3877cac1";
+const TV_GENRE_API = `https://api.themoviedb.org/3/genre/tv/list?api_key=${process.env.NEXT_PUBLIC_TMDB_KEY}`;
 
 /* VidFast is FIRST = default */
 const SERVERS = [

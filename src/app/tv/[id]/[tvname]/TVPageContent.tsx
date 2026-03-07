@@ -11,7 +11,7 @@ import {
 import { FiPlay } from "react-icons/fi";
 import { FaYoutube } from "react-icons/fa";
 
-const API_KEY = "b6a27c41bfadea6397dcd72c3877cac1";
+const API_KEY = process.env.NEXT_PUBLIC_TMDB_KEY!;
 
 type Episode = {
   season_number: number;

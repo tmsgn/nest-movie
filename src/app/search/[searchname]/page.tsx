@@ -23,7 +23,7 @@ type TVShow = {
   genre_ids: number[];
 };
 type Genre = { id: number; name: string };
-const API_KEY = "b6a27c41bfadea6397dcd72c3877cac1";
+const API_KEY = process.env.NEXT_PUBLIC_TMDB_KEY!;
 
 async function getMovieGenres(): Promise<Genre[]> {
   try {
