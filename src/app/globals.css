@@ -256,6 +256,23 @@ body {
   transform: scale(1);
 }
 
+/* Server-page recommendation cards: hover via CSS (no JS handlers) */
+.recommended-movie-card {
+  transform: translateY(0) scale(1);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.recommended-movie-link:hover .recommended-movie-card {
+  transform: translateY(-5px) scale(1.03);
+  box-shadow:
+    0 14px 40px rgba(0, 0, 0, 0.75),
+    0 0 20px rgba(245, 197, 24, 0.15);
+}
+
 /* === Performance: offscreen content === */
 .content-section {
   content-visibility: auto;

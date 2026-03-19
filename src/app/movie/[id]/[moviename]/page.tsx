@@ -165,8 +165,7 @@ export default async function MoviePage({ params }: Props) {
               filter: "brightness(0.45) saturate(1.1)",
             }}
             loading="eager"
-            // @ts-ignore
-            fetchpriority="high"
+            fetchPriority="high"
             decoding="async"
           />
           <div
@@ -220,8 +219,7 @@ export default async function MoviePage({ params }: Props) {
                 alt={movie.title}
                 style={{ width: "100%", height: "auto", display: "block" }}
                 loading="eager"
-                // @ts-ignore
-                fetchpriority="high"
+                fetchPriority="high"
               />
             </div>
           )}
@@ -503,22 +501,16 @@ export default async function MoviePage({ params }: Props) {
                     key={rec.id}
                     href={`/movie/${rec.id}/${rSlug}`}
                     style={{ textDecoration: "none" }}
+                    className="recommended-movie-link"
                   >
                     <div
+                      className="recommended-movie-card"
                       style={{
                         borderRadius: 10,
                         overflow: "hidden",
                         background: "var(--clr-surface)",
                         transition: "all 0.3s",
                         cursor: "pointer",
-                      }}
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLDivElement).style.transform =
-                          "translateY(-5px) scale(1.03)";
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLDivElement).style.transform =
-                          "scale(1)";
                       }}
                     >
                       {rec.poster_path ? (
